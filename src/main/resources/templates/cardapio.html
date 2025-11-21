@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Cardápio</title>
+</head>
+<body>
+
+<section id="menu" class="section">
+    <div class="container">
+        <h2 class="section-title">Nossos Clássicos</h2>
+
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="menu-header">
+                    <span class="drink-name">Old Fashioned</span>
+                    <span class="line"></span>
+                    <span class="drink-price">R$ 45</span>
+                </div>
+                <p class="drink-desc">Bourbon, Angostura, cubo de açúcar e casca de laranja.</p>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-header">
+                    <span class="drink-name">Negroni Clássico</span>
+                    <span class="line"></span>
+                    <span class="drink-price">R$ 42</span>
+                </div>
+                <p class="drink-desc">Gin London Dry, Vermute Rosso e Campari.</p>
+            </div>
+            <div class="menu-item">
+                <div class="menu-header">
+                    <span class="drink-name">Whisky Sour</span>
+                    <span class="line"></span>
+                    <span class="drink-price">R$ 48</span>
+                </div>
+                <p class="drink-desc">Bourbon, suco de limão, xarope de açúcar e clara de ovo.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

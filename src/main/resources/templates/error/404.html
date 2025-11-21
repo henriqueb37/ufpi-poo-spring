@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Página Não Encontrada</title>
+</head>
+<body>
+
+<section class="erro-container">
+    <h1>Ops! 404</h1>
+    <p>A página que você está procurando não existe ou foi movida.</p>
+
+    <p>Tentativa em: <code th:text="${path}">/caminho</code></p>
+
+    <a th:href="@{/}">Voltar para o Início</a>
+</section>
+
+</body>
+</html>
