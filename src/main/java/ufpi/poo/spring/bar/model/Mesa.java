@@ -35,7 +35,11 @@ public class Mesa {
     @OneToMany(mappedBy = "idMesa")
     private Set<Pagamento> pagamentos = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "idMesa")
+    @OneToMany(mappedBy = "mesa")
     private Set<Pedido> pedidos = new LinkedHashSet<>();
+
+    @ColumnDefault("1")
+    @Column(name = "ativado")
+    private Boolean ativado;
 
 }

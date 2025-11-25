@@ -173,7 +173,7 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     margin-bottom: 5px;
 }
 
-.drink-name {
+.item-name {
     font-family: var(--font-heading);
     font-size: 1.4rem;
     color: var(--accent);
@@ -189,7 +189,7 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     opacity: 0.3;
 }
 
-.drink-price {
+.item-price {
     font-size: 1.2rem;
     font-weight: 700;
 }
@@ -247,7 +247,7 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
 
     .line { display: none; }
 
-    .drink-price {
+    .item-price {
         margin-top: 5px;
         color: var(--text-main);
     }

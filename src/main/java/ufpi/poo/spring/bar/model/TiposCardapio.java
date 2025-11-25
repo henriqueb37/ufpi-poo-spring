@@ -3,6 +3,7 @@ package ufpi.poo.spring.bar.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -24,5 +25,9 @@ public class TiposCardapio {
 
     @OneToMany(mappedBy = "tipo")
     private Set<Cardapio> cardapios = new LinkedHashSet<>();
+
+    @ColumnDefault("1")
+    @Column(name = "ativado")
+    private Boolean ativado;
 
 }

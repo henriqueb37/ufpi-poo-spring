@@ -10,32 +10,13 @@
     <div class="container">
         <h2 class="section-title">Nossos Clássicos</h2>
 
-        <div class="menu-grid">
-            <div class="menu-item">
-                <div class="menu-header">
-                    <span class="drink-name">Old Fashioned</span>
-                    <span class="line"></span>
-                    <span class="drink-price">R$ 45</span>
-                </div>
-                <p class="drink-desc">Bourbon, Angostura, cubo de açúcar e casca de laranja.</p>
-            </div>
+        <div id="area-dos-pedidos"
+             hx-get="/fragments/item_cardapio"
+             hx-trigger="load, every 30s"
+             hx-swap="innerHTML">
 
-            <div class="menu-item">
-                <div class="menu-header">
-                    <span class="drink-name">Negroni Clássico</span>
-                    <span class="line"></span>
-                    <span class="drink-price">R$ 42</span>
-                </div>
-                <p class="drink-desc">Gin London Dry, Vermute Rosso e Campari.</p>
-            </div>
-            <div class="menu-item">
-                <div class="menu-header">
-                    <span class="drink-name">Whisky Sour</span>
-                    <span class="line"></span>
-                    <span class="drink-price">R$ 48</span>
-                </div>
-                <p class="drink-desc">Bourbon, suco de limão, xarope de açúcar e clara de ovo.</p>
-            </div>
+             <p>Carregando itens...</p>
+
         </div>
     </div>
 </section>

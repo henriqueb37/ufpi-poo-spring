@@ -26,7 +26,7 @@ public class Pedido {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_mesa", nullable = false)
-    private Mesa idMesa;
+    private Mesa mesa;
 
     @Column(name = "quant", nullable = false)
     private Integer quant;
@@ -34,5 +34,8 @@ public class Pedido {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "hora")
     private Instant hora;
+
+    @Column(name = "cancelamento", length = 500)
+    private String cancelamento;
 
 }
