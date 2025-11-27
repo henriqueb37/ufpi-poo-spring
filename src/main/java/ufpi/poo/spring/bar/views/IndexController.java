@@ -4,19 +4,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import ufpi.poo.spring.bar.dao.CardapioRepository;
+import ufpi.poo.spring.bar.dao.MesaRepository;
 import ufpi.poo.spring.bar.dto.CardapioDto;
+import ufpi.poo.spring.bar.dto.MesaDto;
 import ufpi.poo.spring.bar.model.Cardapio;
+import ufpi.poo.spring.bar.model.Mesa;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 public class IndexController {
     @Autowired
     CardapioRepository cardapioDao;
+
+    @Autowired
+    MesaRepository mesaDao;
 
     @GetMapping("/")
     public String paginaInicial() {
@@ -48,6 +52,28 @@ public class IndexController {
 //    public String cadastrarFuncionario() {
 //        return "cadastro";
 //    }
+
+    @GetMapping("/mesas")
+    public String getMesas(Model model) {
+        Iterable<Mesa> mesas = mesaDao.findAll();
+        List<MesaDto> mesaDto = new ArrayList<>();
+        for (var m : mesas) {
+            if (m.getAtivado())
+                mesaDto.add(MesaDto.fromMesa(m));
+        }
+        model.addAttribute("mesas", mesas);
+        return "mesas";
+    }
+
+    @GetMapping("/mesas/{id}")
+    public String getDetalhesMesa(Model model, @PathVariable Integer id) {
+        Optional<Mesa> mesa = mesaDao.findById(id);
+        if (mesa.isPresent()) {
+            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
+            return "mesa-detalhe";
+        }
+        return "error/404";
+    }
 
     @GetMapping("/fragments/item_cardapio")
     public String getItensCardapio(Model model) {

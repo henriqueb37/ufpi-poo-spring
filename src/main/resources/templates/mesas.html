@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout (~{::title}, ~{::section})}">
+<head>
+    <title>Gerenciamento de Mesas - The Velvet Bar</title>
+</head>
+<body>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Mapa de Mesas</h2>
+
+        <div class="tables-grid">
+
+            <!-- Loop usando MesaDto -->
+            <a th:each="mesa : ${mesas}"
+               th:href="@{/mesas/{id}(id=${mesa.id})}"
+               class="mesa-card"
+               th:classappend="${mesa.estado == 1 ? 'status-ocupada' : (mesa.estado == 2 ? 'status-fechando' : 'status-livre')}">
+
+                <!-- ID como Número da Mesa -->
+                <span class="mesa-number" th:text="${mesa.id}">01</span>
+
+                <!-- Lógica de exibição do status baseado no Integer 'estado' -->
+                <span class="mesa-status" th:switch="${mesa.estado}">
+                        <span th:case="0">LIVRE</span>
+                        <span th:case="1">OCUPADA</span>
+                        <span th:case="2">FECHANDO</span>
+                        <span th:case="*">OUTRO</span>
+                    </span>
+
+                <!-- Info extra: Pessoas na mesa -->
+                <div th:if="${mesa.estado == 1}" style="margin-top: 10px; color: #aaa; font-size: 0.8rem;">
+                    <i class="fas fa-users"></i> <span th:text="${mesa.nPessoas}">2</span> Pessoas
+                </div>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+</body>
+</html>
