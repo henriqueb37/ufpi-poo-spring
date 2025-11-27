@@ -1,4 +1,6 @@
-/* --- Variáveis de Design (Fácil de alterar) --- */
+/* =========================================
+   1. VARIÁVEIS & RESET
+   ========================================= */
 :root {
     /* Cores */
     --bg-dark: #121212;       /* Fundo principal - Quase preto */
@@ -16,7 +18,6 @@
     --spacing-section: 80px;
 }
 
-/* --- Reset Básico --- */
 * {
     margin: 0;
     padding: 0;
@@ -33,29 +34,36 @@ body {
     font-family: var(--font-body);
     font-weight: 300;
     line-height: 1.6;
-    min-height: 100vh;
+
+    /* Sticky Footer Hack: Garante que o rodapé fique embaixo */
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 }
 
-/* --- Tipografia --- */
+/* Garante que o conteúdo principal expanda para empurrar o footer */
+.conteudo, .main-content {
+    flex: 1;
+}
+
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+
+/* =========================================
+   2. TIPOGRAFIA
+   ========================================= */
 h1, h2, h3 {
     font-family: var(--font-heading);
     color: var(--accent);
     margin-bottom: 1rem;
-    font-weight: 400; /* Elegância geralmente usa pesos mais leves */
+    font-weight: 400;
 }
 
 h1 { font-size: 3.5rem; line-height: 1.1; }
 h2 { font-size: 2.5rem; text-align: center; }
 
-a { text-decoration: none; color: inherit; transition: 0.3s; }
-
-/* --- Layout --- */
-.conteudo {
-    flex: 1;
-}
-
+/* =========================================
+   3. LAYOUT & UTILITÁRIOS
+   ========================================= */
 .container {
     max-width: var(--container-width);
     margin: 0 auto;
@@ -66,14 +74,21 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     padding: var(--spacing-section) 0;
 }
 
-/* --- Navegação --- */
+.section-title {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+/* =========================================
+   4. NAVEGAÇÃO
+   ========================================= */
 .navbar {
-    background-color: rgba(18, 18, 18, 0.95); /* Leve transparência */
+    background-color: rgba(18, 18, 18, 0.95);
     padding: 1.5rem 0;
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.1); /* Linha sutil dourada */
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
 }
 
 .nav-content {
@@ -101,15 +116,20 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     color: var(--accent);
 }
 
-/* --- Botões --- */
+/* =========================================
+   5. BOTÕES
+   ========================================= */
 .btn {
     padding: 10px 25px;
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 2px;
-    border-radius: 2px; /* Bordas levemente quadradas são mais formais */
+    border-radius: 2px;
     cursor: pointer;
     display: inline-block;
+    border: none;
+    text-align: center;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -125,6 +145,7 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
 }
 
 .btn-outline {
+    background-color: transparent;
     border: 1px solid var(--accent);
     color: var(--accent);
 }
@@ -134,16 +155,29 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     color: var(--bg-dark);
 }
 
-/* --- Hero (Capa) --- */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+}
+
+.btn-danger {
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    background: transparent;
+}
+.btn-danger:hover { background: #e74c3c; color: white; }
+
+/* =========================================
+   6. PÁGINA INICIAL (Hero & Menu Público)
+   ========================================= */
 .hero {
-    height: 100vh;
+    height: 100vh; /* Tela Cheia */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    /* Gradiente escuro sobre a imagem para garantir leitura do texto */
     background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-                url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+    url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
     background-size: cover;
     background-position: center;
 }
@@ -154,17 +188,15 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     color: #ddd;
 }
 
-/* --- Menu de Drinks (Efeito de lista com linha) --- */
-.menu-grid {
+/* Lista do Menu Público */
+.menu-grid-public {
     max-width: 800px;
     margin: 40px auto 0;
     display: grid;
     gap: 40px;
 }
 
-.menu-item {
-    margin-bottom: 10px;
-}
+.menu-item { margin-bottom: 10px; }
 
 .menu-header {
     display: flex;
@@ -173,13 +205,12 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     margin-bottom: 5px;
 }
 
-.item-name {
+.drink-name {
     font-family: var(--font-heading);
     font-size: 1.4rem;
     color: var(--accent);
 }
 
-/* A linha pontilhada entre nome e preço */
 .line {
     flex-grow: 1;
     border-bottom: 1px dotted var(--text-muted);
@@ -189,7 +220,7 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     opacity: 0.3;
 }
 
-.item-price {
+.drink-price {
     font-size: 1.2rem;
     font-weight: 700;
 }
@@ -200,59 +231,96 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     font-style: italic;
 }
 
-/* --- Footer --- */
-/* Ajuste no container do footer para organizar os elementos */
+/* =========================================
+   7. RODAPÉ
+   ========================================= */
+.footer {
+    text-align: center;
+    padding: 40px 0;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: auto; /* Empurra para o final */
+}
+
 .footer .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px; /* Espaço entre o copyright e o link */
-    margin-top: auto;
+    gap: 15px;
 }
 
-/* O container do link */
-.admin-access {
-    margin-top: 10px;
-}
+.admin-access { margin-top: 10px; }
 
-/* O estilo do link "invisível" */
 .employee-link {
-    font-size: 0.75rem;      /* Fonte bem pequena */
-    color: rgba(255, 255, 255, 0.2); /* Muito transparente (quase sumindo no fundo preto) */
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.2);
     text-transform: uppercase;
     letter-spacing: 1px;
-    text-decoration: none;
-    transition: all 0.3s ease;
 }
 
-/* Quando o funcionário passa o mouse */
 .employee-link:hover {
-    color: var(--accent);    /* Acende na cor Dourada */
+    color: var(--accent);
     opacity: 1;
-    cursor: pointer;
 }
 
-/* --- Responsivo --- */
-@media (max-width: 768px) {
-    h1 { font-size: 2.5rem; }
-
-    .nav-links {
-        display: none; /* Em um projeto real, aqui entraria um menu hambúrguer */
-    }
-
-    .menu-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .line { display: none; }
-
-    .item-price {
-        margin-top: 5px;
-        color: var(--text-main);
-    }
+/* =========================================
+   8. TELA DE LOGIN
+   ========================================= */
+.login-page {
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background: url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+    background-size: cover;
+    background-position: center;
 }
-/* --- Grid de Mesas --- */
+
+.login-overlay {
+    background-color: rgba(18, 18, 18, 0.85);
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-card {
+    background-color: #1e1e1e;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    border-radius: 4px;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+.login-header { text-align: center; margin-bottom: 30px; }
+.login-header h1 { font-size: 2.5rem; margin-bottom: 5px; font-style: italic; }
+.login-header p { color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; color: var(--accent); font-size: 0.9rem; margin-bottom: 8px; }
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    background-color: #121212;
+    border: 1px solid #333;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.input-group input:focus { border-color: var(--accent); }
+
+.btn-block { width: 100%; padding: 15px; margin-top: 10px; }
+.login-footer { margin-top: 25px; text-align: center; }
+.login-footer a { color: var(--text-muted); font-size: 0.85rem; }
+
+/* =========================================
+   9. SISTEMA: LISTA DE MESAS (Grid)
+   ========================================= */
 .tables-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -272,8 +340,7 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     align-items: center;
     justify-content: center;
     min-height: 140px;
-    position: relative;
-    overflow: hidden;
+    text-decoration: none;
 }
 
 .mesa-card:hover {
@@ -298,32 +365,17 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     font-weight: 700;
 }
 
-/* Cores de Status */
-.status-livre {
-    color: #4cd137; /* Verde */
-    background: rgba(76, 209, 55, 0.1);
-}
+/* Cores de Status das Mesas */
+.status-livre { color: #4cd137; background: rgba(76, 209, 55, 0.1); }
+.status-ocupada { color: var(--accent); background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); }
+.status-fechando { color: #e1b12c; background: rgba(225, 177, 44, 0.1); }
 
-.status-ocupada {
-    color: var(--accent); /* Dourado */
-    background: rgba(212, 175, 55, 0.1);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-.status-fechando {
-    color: #e1b12c; /* Amarelo */
-    background: rgba(225, 177, 44, 0.1);
-}
-
-.status-reservada {
-    color: #00a8ff; /* Azul */
-    background: rgba(0, 168, 255, 0.1);
-}
-
-/* --- Detalhes da Mesa (Comanda) --- */
+/* =========================================
+   10. SISTEMA: DETALHES DA MESA (Comanda)
+   ========================================= */
 .comanda-container {
     display: grid;
-    grid-template-columns: 2fr 1fr; /* 2/3 para lista, 1/3 para ações */
+    grid-template-columns: 2fr 1fr;
     gap: 30px;
     margin-top: 30px;
 }
@@ -335,7 +387,6 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     border-radius: 4px;
 }
 
-/* Tabela de Itens */
 .table-items {
     width: 100%;
     border-collapse: collapse;
@@ -355,12 +406,8 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     border-bottom: 1px dotted #333;
     color: #ddd;
 }
+.table-items td.actions { text-align: right; }
 
-.table-items td.actions {
-    text-align: right;
-}
-
-/* Totais */
 .financial-summary {
     margin-top: 20px;
     border-top: 1px solid #444;
@@ -384,41 +431,95 @@ a { text-decoration: none; color: inherit; transition: 0.3s; }
     padding-top: 10px;
 }
 
-/* Painel de Ações (Direita) */
-.actions-panel h3 {
-    color: #fff;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
+/* Painel de Ações */
+.actions-panel h3 { color: #fff; margin-bottom: 20px; font-size: 1.2rem; }
+.action-btn-group { display: flex; flex-direction: column; gap: 15px; }
+
+/* =========================================
+   11. SISTEMA: ADICIONAR PEDIDO
+   ========================================= */
+.search-container {
+    margin-bottom: 30px;
+    position: relative;
 }
 
-.action-btn-group {
+.search-input {
+    width: 100%;
+    padding: 15px 20px 15px 50px;
+    background-color: var(--bg-card);
+    border: 1px solid #333;
+    border-radius: 50px;
+    color: #fff;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.produto-card {
+    background-color: var(--bg-card);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    justify-content: space-between;
 }
 
-.btn-danger {
-    border: 1px solid #e74c3c;
-    color: #e74c3c;
-    background: transparent;
-}
-.btn-danger:hover { background: #e74c3c; color: white; }
+.produto-card:hover { border-color: #444; }
 
-.btn-success {
-    background-color: #27ae60;
+.produto-tipo { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 5px; }
+.produto-nome { font-family: var(--font-heading); font-size: 1.2rem; color: #fff; margin-bottom: 10px; line-height: 1.3; }
+.produto-preco { color: var(--accent); font-weight: 700; font-size: 1.1rem; margin-bottom: 15px; }
+
+.add-form { display: flex; gap: 10px; align-items: center; }
+.qtd-input {
+    width: 60px;
+    background: #121212;
+    border: 1px solid #333;
     color: white;
-    border: none;
-}
-.btn-success:hover { background-color: #2ecc71; }
-
-.btn-sm {
-    padding: 5px 10px;
-    font-size: 0.75rem;
+    padding: 8px;
+    text-align: center;
+    border-radius: 4px;
 }
 
-/* Responsividade */
+/* Feedback Visual (Botão Verde) */
+.btn-added {
+    background-color: #27ae60 !important;
+    border-color: #27ae60 !important;
+    color: white !important;
+    pointer-events: none;
+}
+
+/* =========================================
+   12. RESPONSIVIDADE GERAL
+   ========================================= */
 @media (max-width: 768px) {
-    .comanda-container {
-        grid-template-columns: 1fr;
-    }
+    h1 { font-size: 2.5rem; }
+
+    .nav-links { display: none; }
+
+    .menu-header { flex-direction: column; align-items: flex-start; }
+    .line { display: none; }
+    .drink-price { margin-top: 5px; color: var(--text-main); }
+
+    .comanda-container { grid-template-columns: 1fr; }
 }

@@ -38,4 +38,7 @@ public class Pedido {
     @Column(name = "cancelamento", length = 500)
     private String cancelamento;
 
+    @Column(name = "valor_fechado")
+    private Double valorFechado;
+
 }

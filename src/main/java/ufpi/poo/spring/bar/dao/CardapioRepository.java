@@ -5,7 +5,7 @@ import ufpi.poo.spring.bar.model.Cardapio;
 import java.util.List;
 
 public interface CardapioRepository extends JpaRepository<Cardapio, Integer> {
-    //testetesteteste
+
     // Lista apenas os itens que estão marcados como ATIVADOS (não deletados)
     // SQL gerado: SELECT * FROM cardapio WHERE ativado = true
     List<Cardapio> findByAtivadoTrue();

@@ -55,17 +55,21 @@ public class MesaDto implements Serializable {
         }
         Set<MesaDto.PedidoDto> pedidos = new HashSet<>();
         for (var p : mesa.getPedidos()) {
-            pedidos.add(new MesaDto.PedidoDto(
-                    p.getId(),
-                    p.getItem().getId(),
-                    p.getItem().getNome(),
-                    p.getItem().getValor(),
-                    p.getItem().getTipo().getId(),
-                    p.getItem().getTipo().getNome(),
-                    p.getItem().getTipo().getPercGorjeta(),
-                    p.getQuant(),
-                    p.getHora()
-            ));
+            if (p.getCancelamento() == null && mesa.getHoraAberta() != null && p.getHora().isAfter(mesa.getHoraAberta())) {
+                pedidos.add(new MesaDto.PedidoDto(
+                        p.getId(),
+                        p.getItem().getId(),
+                        p.getItem().getNome(),
+                        p.getValorFechado() == null
+                            ? p.getItem().getValor()
+                            : p.getValorFechado(),
+                        p.getItem().getTipo().getId(),
+                        p.getItem().getTipo().getNome(),
+                        p.getItem().getTipo().getPercGorjeta(),
+                        p.getQuant(),
+                        p.getHora()
+                ));
+            }
         }
         return new MesaDto(
                 mesa.getId(),

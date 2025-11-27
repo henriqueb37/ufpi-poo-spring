@@ -9,8 +9,9 @@ import ufpi.poo.spring.bar.dao.CardapioRepository;
 import ufpi.poo.spring.bar.dao.MesaRepository;
 import ufpi.poo.spring.bar.dto.CardapioDto;
 import ufpi.poo.spring.bar.dto.MesaDto;
-import ufpi.poo.spring.bar.model.Cardapio;
+import ufpi.poo.spring.bar.misc.MesaEstados;
 import ufpi.poo.spring.bar.model.Mesa;
+import ufpi.poo.spring.bar.service.DadosService;
 
 import java.util.*;
 
@@ -18,9 +19,10 @@ import java.util.*;
 public class IndexController {
     @Autowired
     CardapioRepository cardapioDao;
-
     @Autowired
     MesaRepository mesaDao;
+    @Autowired
+    private DadosService dadosService;
 
     @GetMapping("/")
     public String paginaInicial() {
@@ -61,7 +63,7 @@ public class IndexController {
             if (m.getAtivado())
                 mesaDto.add(MesaDto.fromMesa(m));
         }
-        model.addAttribute("mesas", mesas);
+        model.addAttribute("mesas", mesaDto);
         return "mesas";
     }
 
@@ -75,15 +77,20 @@ public class IndexController {
         return "error/404";
     }
 
+    @GetMapping("/mesas/{id}/adicionar")
+    public String adicionarItem(Model model, @PathVariable Integer id) {
+        Optional<Mesa> mesa = mesaDao.findById(id);
+        if (mesa.isPresent() && mesa.get().getAtivado() && mesa.get().getEstado() == MesaEstados.ABERTA.getLabel()) {
+            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
+            model.addAttribute("cardapio", dadosService.getCardapio());
+            return "adicionar-pedido";
+        }
+        return "error/404";
+    }
+
     @GetMapping("/fragments/item_cardapio")
     public String getItensCardapio(Model model) {
-        Iterable<Cardapio> cardapio = cardapioDao.findAll();
-        List<CardapioDto> cardapioDto = new ArrayList<>();
-        for (var c : cardapio) {
-            if (c.getAtivado() && c.getTipo().getAtivado())
-                cardapioDto.add(CardapioDto.fromCardapio(c));
-        }
-        model.addAttribute("cardapio", cardapioDto);
+        model.addAttribute("cardapio", dadosService.getCardapio());
         return "fragments/item_cardapio :: lista-cardapio";
     }
 }
