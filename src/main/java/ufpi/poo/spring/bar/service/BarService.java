@@ -140,7 +140,7 @@ public class BarService {
         double totalPago = pagamentoRepository.calcularTotalPagoMesa(idMesa);
         double saldoPend = totalConta - totalPago;
 
-        if (saldoPend > 0.05) { // Margem de segurança de 5 centavos
+        if (saldoPend > 0.009) { // Margem de segurança de 5 centavos
             throw new RuntimeException("Não é possível fechar. Ainda há saldo devedor de R$ " + String.format("%.2f", saldoPend));
         }
 
