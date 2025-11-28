@@ -21,6 +21,12 @@
         <ul class="nav-links">
             <li><a href="/cardapio">Cardápio</a></li>
             <li><a href="#sobre">Sobre</a></li>
+
+            <li sec:authorize="isAuthenticated()">
+                <a href="/admin/dashboard" style="color: #e1b12c; font-weight: bold; border: 1px solid #e1b12c; padding: 5px 10px; border-radius: 5px;">
+                    <i class="fas fa-user-shield"></i> Painel
+                </a>
+            </li>
             <li><a href="#reserva" class="btn btn-primary">Acessar Mesa</a></li>
         </ul>
     </div>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout (~{::title}, ~{::section})}">
+<head>
+    <title>Relatórios Gerenciais</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<section class="section">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title"><i class="fas fa-chart-line"></i> Relatórios Financeiros</h2>
+            <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body" style="background-color: #f8f9fa;">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Data Início:</label>
+                        <input type="date" name="inicio" class="form-control" th:value="${inicio}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Data Fim:</label>
+                        <input type="date" name="fim" class="form-control" th:value="${fim}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i> Atualizar Gráficos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card text-center border-success" style="border-width: 2px;">
+                    <div class="card-body">
+                        <h4 class="text-muted mb-2">Faturamento no Período</h4>
+                        <h1 class="display-4 fw-bold text-success"
+                            th:text="${#numbers.formatCurrency(faturamentoTotal)}">R$ 0,00</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-white fw-bold">Itens Mais Vendidos (Qtd)</div>
+                    <div class="card-body">
+                        <canvas id="graficoQtd"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-white fw-bold">Maior Receita Gerada (R$)</div>
+                    <div class="card-body">
+                        <div style="max-height: 300px; display: flex; justify-content: center;">
+                            <canvas id="graficoValor"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /* O Thymeleaf converte a lista de RelatorioGraficoDto para JSON automaticamente */
+        /* Estrutura do DTO: { label: "Nome", value: 10 } */
+
+        const dadosMaisVendidos = /*[[${maisVendidos}]]*/ [];
+        const dadosMaiorFaturamento = /*[[${maiorFaturamento}]]*/ [];
+
+        // --- Gráfico 1: Quantidade (Barras) ---
+        if (document.getElementById('graficoQtd')) {
+            new Chart(document.getElementById('graficoQtd'), {
+                type: 'bar',
+                data: {
+                    // Usamos .label (nome) e .value (quantidade) direto do DTO
+                    labels: dadosMaisVendidos.map(d => d.label),
+                    datasets: [{
+                        label: 'Unidades Vendidas',
+                        data: dadosMaisVendidos.map(d => d.value),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // --- Gráfico 2: Faturamento (Pizza) ---
+        if (document.getElementById('graficoValor')) {
+            new Chart(document.getElementById('graficoValor'), {
+                type: 'doughnut',
+                data: {
+                    labels: dadosMaiorFaturamento.map(d => d.label),
+                    datasets: [{
+                        label: 'Receita (R$)',
+                        data: dadosMaiorFaturamento.map(d => d.value),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    </script>
+</section>
+
+</body>
+</html>

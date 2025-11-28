@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ufpi.poo.spring.bar.dto.ItemRelatorioDto;
 import ufpi.poo.spring.bar.service.BarService;
+import ufpi.poo.spring.bar.dto.RelatorioGraficoDto;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -42,18 +43,18 @@ public class AdminController {
 
         // 3. Busca os dados usando o Serviço
         Double faturamentoTotal = barService.gerarRelatorioFaturamento(dataInicio, dataFim);
-        List<ItemRelatorioDto> maisVendidos = barService.gerarRelatorioMaisVendidos(dataInicio, dataFim);
-        List<ItemRelatorioDto> maiorFaturamento = barService.gerarRelatorioMelhoresItens(dataInicio, dataFim);
+        // --- CORREÇÃO AQUI ---
+        // Mude de List<ItemRelatorioDto> para List<RelatorioGraficoDto>
+        List<RelatorioGraficoDto> maisVendidos = barService.gerarRelatorioMaisVendidos(dataInicio, dataFim);
+        List<RelatorioGraficoDto> maiorFaturamento = barService.gerarRelatorioMelhoresItens(dataInicio, dataFim);
 
         // 4. Manda para a tela
         model.addAttribute("inicio", inicio);
         model.addAttribute("fim", fim);
         model.addAttribute("faturamentoTotal", faturamentoTotal);
-
-        // Manda as listas para serem usadas pelo JavaScript do gráfico
         model.addAttribute("maisVendidos", maisVendidos);
         model.addAttribute("maiorFaturamento", maiorFaturamento);
 
-        return "admin-relatorios"; // Nome do HTML que faremos no próximo passo
+        return "admin-relatorios";
     }
 }

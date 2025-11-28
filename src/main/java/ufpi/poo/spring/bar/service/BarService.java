@@ -5,12 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ufpi.poo.spring.bar.dao.*;
 import ufpi.poo.spring.bar.dto.ItemRelatorioDto;
+import ufpi.poo.spring.bar.dto.RelatorioGraficoDto;
 import ufpi.poo.spring.bar.misc.MesaEstados;
 import ufpi.poo.spring.bar.model.*;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BarService {
@@ -210,27 +212,45 @@ public class BarService {
     }
 
 
-    // --- RELATÓRIOS ADMINISTRATIVOS (Novos Métodos) ---
+    // --- RELATÓRIOS ADMINISTRATIVOS (Atualizados) ---
 
     /**
      * Retorna o valor total faturado (soma dos pagamentos) no período.
+     * (Este não muda, pois retorna Double simples)
      */
     public Double gerarRelatorioFaturamento(Instant inicio, Instant fim) {
         return pagamentoRepository.calcularFaturamentoPorPeriodo(inicio, fim);
     }
 
     /**
-     * Retorna lista de itens mais vendidos por quantidade.
+     * Retorna lista de itens mais vendidos (Convertida para Gráfico).
      */
-    public List<ItemRelatorioDto> gerarRelatorioMaisVendidos(Instant inicio, Instant fim) {
-        // Retorna a lista completa ordenada pelo banco
-        return pedidoRepository.findItensMaisVendidos(inicio, fim);
+    public List<RelatorioGraficoDto> gerarRelatorioMaisVendidos(Instant inicio, Instant fim) {
+        // 1. Busca dados crus do banco (Interface)
+        List<ItemRelatorioDto> dadosCrus = pedidoRepository.findItensMaisVendidos(inicio, fim);
+
+        // 2. Converte para DTO Simples (POJO) para o JSON funcionar no HTML
+        return dadosCrus.stream()
+                .map(item -> new RelatorioGraficoDto(
+                        item.getNomeItem(),      // Label (Nome)
+                        item.getQuantidadeTotal() // Value (Qtd)
+                ))
+                .collect(Collectors.toList());
     }
 
     /**
-     * Retorna lista de itens que geraram maior receita (Quantidade * Valor).
+     * Retorna lista de maior receita (Convertida para Gráfico).
      */
-    public List<ItemRelatorioDto> gerarRelatorioMelhoresItens(Instant inicio, Instant fim) {
-        return pedidoRepository.findItensMaiorFaturamento(inicio, fim);
+    public List<RelatorioGraficoDto> gerarRelatorioMelhoresItens(Instant inicio, Instant fim) {
+        // 1. Busca dados crus do banco
+        List<ItemRelatorioDto> dadosCrus = pedidoRepository.findItensMaiorFaturamento(inicio, fim);
+
+        // 2. Converte para DTO Simples
+        return dadosCrus.stream()
+                .map(item -> new RelatorioGraficoDto(
+                        item.getNomeItem(),  // Label (Nome)
+                        item.getValorTotal() // Value (R$)
+                ))
+                .collect(Collectors.toList());
     }
 }
