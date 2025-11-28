@@ -138,4 +138,9 @@ public class IndexController {
 
         return "admin-cardapio";
     }
+
+    @GetMapping("/admin/mesas")
+    public String gerenciarMesas(Model model) {
+        return "admin-mesas";
+    }
 }
