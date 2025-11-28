@@ -42,4 +42,7 @@ public class Mesa {
     @Column(name = "ativado")
     private Boolean ativado;
 
+    @Column(name = "capacidade")
+    private Integer capacidade;
+
 }

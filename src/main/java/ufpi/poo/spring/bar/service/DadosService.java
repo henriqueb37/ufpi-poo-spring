@@ -75,6 +75,7 @@ public class DadosService {
                 mesa.getEstado(),
                 mesa.getPagaEntrada(),
                 mesa.getNPessoas(),
+                mesa.getCapacidade(),
                 mesa.getHoraAberta(),
                 pagamentos,
                 pedidos,

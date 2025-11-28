@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout (~{::title}, ~{::section})}">
+<head>
+    <title>Registrar Pagamento</title>
+</head>
+<body>
+
+<section class="section">
+    <div class="container" style="max-width: 500px;">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title">
+                <i class="fas fa-cash-register"></i> Pagamento
+            </h2>
+            <a th:href="@{/mesas/{id}(id=${mesa.id})}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header text-white text-center py-4"
+                 style="background-color: var(--accent); color: #000 !important;">
+                <h5 class="mb-0">Saldo Devedor</h5>
+                <h1 class="fw-bold display-4"
+                    th:text="${'R$ ' + #numbers.formatDecimal(mesa.total - mesa.totalPago, 1, 'POINT', 2, 'COMMA')}">
+                    R$ 0,00
+                </h1>
+                <small class="d-block mt-2">
+                    Total: <span th:text="${#numbers.formatCurrency(mesa.total)}"></span> |
+                    Pago: <span th:text="${#numbers.formatCurrency(mesa.totalPago)}"></span>
+                </small>
+            </div>
+
+            <div class="card-body p-4">
+                <form th:action="@{/mesas/{id}/pagamento(id=${mesa.id})}" method="post">
+
+                    <div class="mb-4">
+                        <label for="valor" class="form-label fw-bold">Valor a Pagar (R$):</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">R$</span>
+                            <input type="number" id="valor" name="valor" class="form-control"
+                                   step="0.01" min="0.01"
+                                   th:max="${mesa.total - mesa.totalPago}"
+                                   th:value="${mesa.total - mesa.totalPago}"
+                                   required autofocus>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle"></i> Você pode registrar um valor parcial.
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg text-white fw-bold">
+                            <i class="fas fa-check-circle"></i> CONFIRMAR PAGAMENTO
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

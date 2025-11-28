@@ -181,30 +181,42 @@ public class BarService {
     // --- MÉTODOS DE CÁLCULO (Auxiliares) ---
 
     public Double calcularTotalGeral(Integer idMesa) {
-        // Precisamos filtrar pedidos cancelados!
-        // Como o Repository soma TUDO via SQL puro, o ideal é atualizar o SQL lá.
-        // Mas por segurança, vou chamar a lógica que considera cancelamentos aqui.
 
-        // Soma dos Itens (Excluindo cancelados)
+        // 1. Busca a mesa para checar o status e o n_pessoas
+        Mesa mesa = buscarMesaPorId(idMesa);
+
+        // --- LÓGICA DE ITENS E GORJETAS (Já existente) ---
         List<Pedido> pedidos = pedidoRepository.findByMesaId(idMesa);
 
         double totalItens = 0.0;
         double totalGorjeta = 0.0;
 
         for (Pedido p : pedidos) {
-            // PULA se estiver cancelado
             if (p.getCancelamento() != null) continue;
 
             double valItem = p.getItem().getValor();
             double subtotalItem = valItem * p.getQuant();
 
-            // Soma Item
             totalItens += subtotalItem;
 
-            // Calcula Gorjeta Específica deste item
-            Double percGorjeta = p.getItem().getTipo().getPercGorjeta(); // Ex: 10.0 ou 15.0
+            Double percGorjeta = p.getItem().getTipo().getPercGorjeta();
             if (percGorjeta != null && percGorjeta > 0) {
                 totalGorjeta += subtotalItem * (percGorjeta / 100.0);
+            }
+        }
+        // --- FIM DA LÓGICA EXISTENTE ---
+
+
+        // --- NOVO CÁLCULO: VALOR DA ENTRADA (COUVERT) ---
+
+        if (mesa.getPagaEntrada()) { // Se o Garçom ativou o couvert
+
+            // 2. Busca o preço atual do ingresso (usando o tipo ID = 1)
+            Cardapio ingressoItem = cardapioRepository.findFirstByTipoId(1);
+
+            if (ingressoItem != null) {
+                // 3. Adiciona o valor: Preço do Ingresso * Número de Pessoas
+                totalItens += ingressoItem.getValor() * mesa.getNPessoas();
             }
         }
 
@@ -252,5 +264,30 @@ public class BarService {
                         item.getValorTotal() // Value (R$)
                 ))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Cria e cadastra uma nova mesa física no sistema (Ação do Admin).
+     */
+    @Transactional
+    public void criarNovaMesa(Integer idMesa, Integer capacidade) {
+        // 1. Validação
+        if (idMesa == null || idMesa <= 0 || capacidade == null || capacidade <= 0) {
+            throw new IllegalArgumentException("Dados da mesa inválidos. ID e capacidade devem ser positivos.");
+        }
+
+        // 2. Checa se o ID já existe
+        if (mesaRepository.findById(idMesa).isPresent()) {
+            throw new RuntimeException("Mesa " + idMesa + " já existe no sistema!");
+        }
+
+        // 3. Cria o objeto e salva no banco
+        Mesa novaMesa = new Mesa();
+        novaMesa.setId(idMesa);
+        novaMesa.setCapacidade(capacidade);
+        novaMesa.setEstado(MesaEstados.LIVRE.getLabel()); // Começa como Livre
+        novaMesa.setAtivado(true); // Ativa
+
+        mesaRepository.save(novaMesa);
     }
 }

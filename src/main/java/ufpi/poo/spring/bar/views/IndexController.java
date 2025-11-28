@@ -72,7 +72,8 @@ public class IndexController {
         List<MesaDto> mesaDto = new ArrayList<>();
         for (var m : mesas) {
             if (m.getAtivado())
-                mesaDto.add(dadosService.getMesa(m));
+                // Usa o serviço do seu amigo para converter
+                mesaDto.add(MesaDto.fromMesa(m));
         }
         model.addAttribute("mesas", mesaDto);
         return "mesas";
@@ -82,7 +83,8 @@ public class IndexController {
     public String getDetalhesMesa(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
         if (mesa.isPresent()) {
-            model.addAttribute("mesa", dadosService.getMesa(mesa.get()));
+            // Usa o DTO atualizado
+            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
             return "mesa-detalhe";
         }
         return "error/404";
@@ -91,8 +93,9 @@ public class IndexController {
     @GetMapping("/mesas/{id}/adicionar")
     public String adicionarItem(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
-        if (mesa.isPresent() && mesa.get().getAtivado()) {
-            model.addAttribute("mesa", dadosService.getMesa(mesa.get()));
+        // Verifica se existe, está ativa e OCUPADA (usando o Enum correto)
+        if (mesa.isPresent() && mesa.get().getAtivado() && mesa.get().getEstado() == MesaEstados.OCUPADA.getLabel()) {
+            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
             model.addAttribute("cardapio", dadosService.getCardapio());
             return "adicionar-pedido";
         }
@@ -122,11 +125,9 @@ public class IndexController {
         List<CardapioDto> itens = dadosService.getCardapioAll();
 
         // 3. Agrupe-os em um Map para facilitar a visualização
-        // Map<TiposCardapioDto, List<CardapioDto>>
-        Map<TiposCardapioDto, List<CardapioDto>> map = new LinkedHashMap<>(); // LinkedHashMap mantém ordem
+        Map<TiposCardapioDto, List<CardapioDto>> map = new LinkedHashMap<>();
 
         for (TiposCardapioDto tipo : tipos) {
-            // Filtra os itens que pertencem a este tipo
             List<CardapioDto> itensDoTipo = itens.stream()
                     .filter(i -> i.getTipoId().equals(tipo.getId()))
                     .collect(Collectors.toList());
@@ -139,8 +140,7 @@ public class IndexController {
         return "admin-cardapio";
     }
 
-    @GetMapping("/admin/mesas")
-    public String gerenciarMesas(Model model) {
-        return "admin-mesas";
-    }
+    // --- REMOVIDO: @GetMapping("/admin/mesas") ---
+    // Este método foi removido porque agora quem cuida dessa rota
+    // é o MesaAdminController que criamos.
 }

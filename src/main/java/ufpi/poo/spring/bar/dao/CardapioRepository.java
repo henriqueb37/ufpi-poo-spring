@@ -12,4 +12,7 @@ public interface CardapioRepository extends JpaRepository<Cardapio, Integer> {
 
     // Ordena por nome para ficar bonito na tela
     List<Cardapio> findByAtivadoTrueOrderByNomeAsc();
+
+    // Busca o primeiro item que é do tipo 'Ingresso' (Tipo ID = 1)
+    Cardapio findFirstByTipoId(Integer tipoId);
 }

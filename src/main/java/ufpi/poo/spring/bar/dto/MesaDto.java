@@ -1,20 +1,19 @@
 package ufpi.poo.spring.bar.dto;
 
 import lombok.Value;
-
+import ufpi.poo.spring.bar.model.Mesa;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
-/**
- * DTO for {@link ufpi.poo.spring.bar.model.Mesa}
- */
 @Value
 public class MesaDto implements Serializable {
     Integer id;
     Integer estado;
     Boolean pagaEntrada;
-    Integer nPessoas;
+    Integer nPessoas;     // Pessoas sentadas agora
+    Integer capacidade;   // <--- NOVO CAMPO (Fixo da mesa)
     Instant horaAberta;
     Set<PagamentoDto> pagamentos;
     Set<PedidoDto> pedidos;
@@ -24,9 +23,7 @@ public class MesaDto implements Serializable {
     Double totalPago;
     Double total;
 
-    /**
-     * DTO for {@link ufpi.poo.spring.bar.model.Pagamento}
-     */
+    // ... (Mantenha as classes internas PagamentoDto e PedidoDto iguais) ...
     @Value
     public static class PagamentoDto implements Serializable {
         Integer id;
@@ -34,9 +31,6 @@ public class MesaDto implements Serializable {
         Instant hora;
     }
 
-    /**
-     * DTO for {@link ufpi.poo.spring.bar.model.Pedido}
-     */
     @Value
     public static class PedidoDto implements Serializable {
         Integer id;
@@ -48,5 +42,63 @@ public class MesaDto implements Serializable {
         Double itemTipoPercGorjeta;
         Integer quant;
         Instant hora;
+    }
+
+    public static MesaDto fromMesa(Mesa mesa) {
+        if (mesa == null) return null;
+
+        // ... (Mantenha a lógica de cálculo de pagamentos e pedidos IGUAL) ...
+        // Vou resumir aqui para não ficar gigante, mas mantenha o código de loop que já existia
+
+        Set<PagamentoDto> pagamentosDto = new HashSet<>();
+        double totalPagoCalculado = 0.0;
+        if (mesa.getPagamentos() != null) {
+            for (var p : mesa.getPagamentos()) {
+                pagamentosDto.add(new PagamentoDto(p.getId(), p.getValor(), p.getHora()));
+                totalPagoCalculado += p.getValor();
+            }
+        }
+
+        Set<PedidoDto> pedidosDto = new HashSet<>();
+        double subtotalCalculado = 0.0;
+        double gorjetaCalculada = 0.0;
+
+        if (mesa.getPedidos() != null) {
+            for (var p : mesa.getPedidos()) {
+                if (p.getCancelamento() == null) {
+                    Double valorEfetivo = (p.getValorFechado() != null) ? p.getValorFechado() : p.getItem().getValor();
+                    Double percGorjeta = (p.getItem().getTipo().getPercGorjeta() != null) ? p.getItem().getTipo().getPercGorjeta() : 0.0;
+
+                    double valorItemTotal = valorEfetivo * p.getQuant();
+                    subtotalCalculado += valorItemTotal;
+                    gorjetaCalculada += valorItemTotal * (percGorjeta / 100.0);
+
+                    pedidosDto.add(new PedidoDto(
+                            p.getId(), p.getItem().getId(), p.getItem().getNome(), valorEfetivo,
+                            p.getItem().getTipo().getId(), p.getItem().getTipo().getNome(), percGorjeta,
+                            p.getQuant(), p.getHora()
+                    ));
+                }
+            }
+        }
+
+        double entradaCalculada = 0.0; // Sem acesso ao repo, mantém 0
+        double totalCalculado = subtotalCalculado + gorjetaCalculada + entradaCalculada;
+
+        return new MesaDto(
+                mesa.getId(),
+                mesa.getEstado(),
+                mesa.getPagaEntrada(),
+                mesa.getNPessoas(),
+                mesa.getCapacidade(), // <--- ADICIONE AQUI! (Pega da Entidade e joga no DTO)
+                mesa.getHoraAberta(),
+                pagamentosDto,
+                pedidosDto,
+                subtotalCalculado,
+                gorjetaCalculada,
+                entradaCalculada,
+                totalPagoCalculado,
+                totalCalculado
+        );
     }
 }
