@@ -8,123 +8,132 @@
 
 <section class="section">
     <div class="container">
-        <!-- Cabeçalho com Voltar -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <a th:href="@{/mesas/{id}(id=${mesa.id})}" style="color: #a0a0a0; text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> Voltar à Mesa
-            </a>
-            <span style="color: var(--accent); font-family: var(--font-heading);">Mesa <span th:text="${mesa.id}">01</span></span>
-        </div>
 
-        <h2 class="section-title">Novo Pedido</h2>
-
-        <!-- Barra de Busca (Filtragem Client-Side) -->
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text"
-                   id="searchInput"
-                   class="search-input"
-                   placeholder="Busque por nome, tipo ou código..."
-                   onkeyup="filtrarCardapio()"
-                   autofocus> <!-- Autofocus para agilidade -->
-        </div>
-
-        <!-- Grid de Itens do Cardápio -->
-        <div class="menu-grid" id="lista-produtos">
-
-            <!-- Loop sobre CardapioDto -->
-            <div th:each="item : ${cardapio}" class="produto-card" th:data-nome="${#strings.toLowerCase(item.nome)}" th:data-tipo="${#strings.toLowerCase(item.tipoNome)}">
-
-                <div>
-                    <div class="produto-tipo" th:text="${item.tipoNome}">BEBIDA</div>
-                    <div class="produto-nome" th:text="${item.nome}">Heineken 600ml</div>
-                    <!-- Formatação BigDecimal -->
-                    <div class="produto-preco" th:text="${'R$ ' + #numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}">R$ 18,00</div>
-                </div>
-
-                <!--
-                    FORMULÁRIO HTMX
-                    - Envia POST para adicionar o item.
-                    - hx-swap="outerHTML": Substitui o formulário pela resposta.
-                    - O Backend deve retornar um fragmento de botão com mensagem de sucesso que volta ao normal após X segundos,
-                      OU podemos usar um script simples no hx-on::after-request para feedback visual.
-                -->
-                <form th:action="@{/mesas/{mesaId}/adicionar(mesaId=${mesa.id})}"
-                      method="post"
-                      class="add-form"
-                      hx-post
-                      th:hx-post="@{/mesas/{mesaId}/adicionar(mesaId=${mesa.id})}"
-                      hx-swap="none"
-                      hx-on::after-request="feedbackVisual(this)">
-
-                    <input type="hidden" name="itemId" th:value="${item.id}">
-
-                    <!-- Input de Quantidade -->
-                    <input type="number" name="quantidade" value="1" min="1" class="qtd-input" aria-label="Quantidade">
-
-                    <!-- Botão de Envio -->
-                    <button type="submit" class="btn btn-outline btn-sm" style="flex-grow: 1;">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
-                </form>
+        <!-- BLOCO VISÍVEL APENAS SE A MESA ESTIVER ABERTA (Estado 1) -->
+        <div th:if="${mesa.estado == 1}">
+            <!-- Cabeçalho com Voltar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <a th:href="@{/mesas/{id}(id=${mesa.id})}" style="color: #a0a0a0; text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Voltar à Mesa
+                </a>
+                <span style="color: var(--accent); font-family: var(--font-heading);">Mesa <span th:text="${mesa.id}">01</span></span>
             </div>
 
+            <h2 class="section-title">Novo Pedido</h2>
+
+            <!-- Barra de Busca (Filtragem Client-Side) -->
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text"
+                       id="searchInput"
+                       class="search-input"
+                       placeholder="Busque por nome, tipo ou código..."
+                       onkeyup="filtrarCardapio()"
+                       autofocus>
+            </div>
+
+            <!-- Grid de Itens do Cardápio -->
+            <div class="menu-grid" id="lista-produtos">
+
+                <!-- Loop sobre CardapioDto -->
+                <div th:each="item : ${cardapio}" class="produto-card" th:data-nome="${#strings.toLowerCase(item.nome)}" th:data-tipo="${#strings.toLowerCase(item.tipoNome)}">
+
+                    <div>
+                        <div class="produto-tipo" th:text="${item.tipoNome}">BEBIDA</div>
+                        <div class="produto-nome" th:text="${item.nome}">Heineken 600ml</div>
+                        <div class="produto-preco" th:text="${'R$ ' + #numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}">R$ 18,00</div>
+                    </div>
+
+                    <!--
+                        FORMULÁRIO HTMX
+                        - Atualizado: hx-on::after-request agora passa o 'event'
+                    -->
+                    <form th:action="@{/mesas/{mesaId}/adicionar(mesaId=${mesa.id})}"
+                          method="post"
+                          class="add-form"
+                          hx-post
+                          th:hx-post="@{/mesas/{mesaId}/adicionar(mesaId=${mesa.id})}"
+                          hx-swap="none"
+                          hx-on::after-request="feedbackVisual(this, event)">
+
+                        <input type="hidden" name="itemId" th:value="${item.id}">
+                        <input type="number" name="quantidade" value="1" min="1" class="qtd-input" aria-label="Quantidade">
+
+                        <button type="submit" class="btn btn-outline btn-sm" style="flex-grow: 1;">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mensagem caso a busca não retorne nada -->
+            <div id="no-results" style="display: none; text-align: center; margin-top: 40px; color: #666;">
+                <p>Nenhum item encontrado.</p>
+            </div>
+
+            <!-- Scripts de Interação -->
+            <script>
+                function filtrarCardapio() {
+                    const termo = document.getElementById('searchInput').value.toLowerCase();
+                    const cards = document.querySelectorAll('.produto-card');
+                    let visiveis = 0;
+
+                    cards.forEach(card => {
+                        const nome = card.getAttribute('data-nome');
+                        const tipo = card.getAttribute('data-tipo');
+
+                        if (nome.includes(termo) || tipo.includes(termo)) {
+                            card.style.display = "flex";
+                            visiveis++;
+                        } else {
+                            card.style.display = "none";
+                        }
+                    });
+
+                    document.getElementById('no-results').style.display = visiveis === 0 ? 'block' : 'none';
+                }
+
+                // Recebe o evento do HTMX para verificar o status
+                function feedbackVisual(formElement, event) {
+                    // event.detail.successful é true se o status for 2xx (ex: 200 OK)
+                    if (event && event.detail && event.detail.successful) {
+                        const btn = formElement.querySelector('button');
+                        const iconeOriginal = btn.innerHTML;
+
+                        btn.classList.add('btn-added');
+                        btn.innerHTML = '<i class="fas fa-check"></i> Feito';
+
+                        // Reseta o input de quantidade
+                        const inputQtd = formElement.querySelector('input[name="quantidade"]');
+                        if(inputQtd) inputQtd.value = 1;
+
+                        setTimeout(() => {
+                            btn.classList.remove('btn-added');
+                            btn.innerHTML = iconeOriginal;
+                        }, 1500);
+                    } else {
+                        // Opcional: Feedback de erro
+                        console.error("Erro ao adicionar item", event.detail);
+                        // Você poderia piscar o botão em vermelho aqui se quisesse
+                    }
+                }
+            </script>
         </div>
 
-        <!-- Mensagem caso a busca não retorne nada (escondida por padrão) -->
-        <div id="no-results" style="display: none; text-align: center; margin-top: 40px; color: #666;">
-            <p>Nenhum item encontrado.</p>
+        <!-- BLOCO DE ERRO (Se a mesa NÃO estiver aberta) -->
+        <div th:unless="${mesa.estado == 1}" style="text-align: center; padding: 50px 0;">
+            <div style="font-size: 3rem; color: #444; margin-bottom: 20px;">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 style="color: var(--accent);">Operação Não Permitida</h2>
+            <p style="color: #ccc; margin-bottom: 30px;">
+                Esta mesa não está com o status <strong>ABERTA</strong>.<br>
+                Não é possível adicionar novos itens.
+            </p>
+            <a th:href="@{/mesas/{id}(id=${mesa.id})}" class="btn btn-primary">Voltar aos Detalhes</a>
         </div>
 
     </div>
-
-    <!-- Scripts de Interação -->
-    <script>
-        // Lógica de Filtro Instantâneo
-        function filtrarCardapio() {
-            const termo = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.produto-card');
-            let visiveis = 0;
-
-            cards.forEach(card => {
-                const nome = card.getAttribute('data-nome');
-                const tipo = card.getAttribute('data-tipo');
-
-                if (nome.includes(termo) || tipo.includes(termo)) {
-                    card.style.display = "flex"; // Restaura o display flex
-                    visiveis++;
-                } else {
-                    card.style.display = "none";
-                }
-            });
-
-            // Mostra msg se não achar nada
-            document.getElementById('no-results').style.display = visiveis === 0 ? 'block' : 'none';
-        }
-
-        // Feedback Visual após adicionar (HTMX Trigger)
-        function feedbackVisual(formElement) {
-            // Verifica se a resposta foi sucesso (status 200)
-            // O evento 'htmx:afterRequest' carrega detalhes, mas aqui acessamos direto via 'this' no inline se quiser
-            // Para simplificar, vamos assumir sucesso se não houver erro de rede.
-
-            const btn = formElement.querySelector('button');
-            const iconeOriginal = btn.innerHTML;
-
-            // Muda estado para "Sucesso"
-            btn.classList.add('btn-added');
-            btn.innerHTML = '<i class="fas fa-check"></i> Feito';
-
-            // Reseta a quantidade para 1
-            formElement.querySelector('input[name="quantidade"]').value = 1;
-
-            // Restaura o botão após 1.5 segundos
-            setTimeout(() => {
-                btn.classList.remove('btn-added');
-                btn.innerHTML = iconeOriginal;
-            }, 1500);
-        }
-    </script>
 </section>
 
 </body>

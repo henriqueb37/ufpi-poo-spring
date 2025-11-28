@@ -1,12 +1,9 @@
 package ufpi.poo.spring.bar.dto;
 
-import lombok.NonNull;
 import lombok.Value;
-import ufpi.poo.spring.bar.model.Mesa;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -21,6 +18,11 @@ public class MesaDto implements Serializable {
     Instant horaAberta;
     Set<PagamentoDto> pagamentos;
     Set<PedidoDto> pedidos;
+    Double subtotal;
+    Double gorjeta;
+    Double entrada;
+    Double totalPago;
+    Double total;
 
     /**
      * DTO for {@link ufpi.poo.spring.bar.model.Pagamento}
@@ -46,39 +48,5 @@ public class MesaDto implements Serializable {
         Double itemTipoPercGorjeta;
         Integer quant;
         Instant hora;
-    }
-
-    public static MesaDto fromMesa(@NonNull Mesa mesa) {
-        Set<MesaDto.PagamentoDto> pagamentos = new HashSet<>();
-        for (var p : mesa.getPagamentos()) {
-            pagamentos.add(new MesaDto.PagamentoDto(p.getId(), p.getValor(), p.getHora()));
-        }
-        Set<MesaDto.PedidoDto> pedidos = new HashSet<>();
-        for (var p : mesa.getPedidos()) {
-            if (p.getCancelamento() == null && mesa.getHoraAberta() != null && p.getHora().isAfter(mesa.getHoraAberta())) {
-                pedidos.add(new MesaDto.PedidoDto(
-                        p.getId(),
-                        p.getItem().getId(),
-                        p.getItem().getNome(),
-                        p.getValorFechado() == null
-                            ? p.getItem().getValor()
-                            : p.getValorFechado(),
-                        p.getItem().getTipo().getId(),
-                        p.getItem().getTipo().getNome(),
-                        p.getItem().getTipo().getPercGorjeta(),
-                        p.getQuant(),
-                        p.getHora()
-                ));
-            }
-        }
-        return new MesaDto(
-                mesa.getId(),
-                mesa.getEstado(),
-                mesa.getPagaEntrada(),
-                mesa.getNPessoas(),
-                mesa.getHoraAberta(),
-                pagamentos,
-                pedidos
-        );
     }
 }

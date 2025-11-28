@@ -7,13 +7,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import ufpi.poo.spring.bar.dao.CardapioRepository;
 import ufpi.poo.spring.bar.dao.MesaRepository;
+import ufpi.poo.spring.bar.dao.PagamentoRepository;
 import ufpi.poo.spring.bar.dto.CardapioDto;
 import ufpi.poo.spring.bar.dto.MesaDto;
+import ufpi.poo.spring.bar.dto.TiposCardapioDto;
 import ufpi.poo.spring.bar.misc.MesaEstados;
 import ufpi.poo.spring.bar.model.Mesa;
+import ufpi.poo.spring.bar.service.BarService;
 import ufpi.poo.spring.bar.service.DadosService;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class IndexController {
@@ -23,6 +30,10 @@ public class IndexController {
     MesaRepository mesaDao;
     @Autowired
     private DadosService dadosService;
+    @Autowired
+    private BarService barService;
+    @Autowired
+    private PagamentoRepository pagamentoRepository;
 
     @GetMapping("/")
     public String paginaInicial() {
@@ -61,7 +72,7 @@ public class IndexController {
         List<MesaDto> mesaDto = new ArrayList<>();
         for (var m : mesas) {
             if (m.getAtivado())
-                mesaDto.add(MesaDto.fromMesa(m));
+                mesaDto.add(dadosService.getMesa(m));
         }
         model.addAttribute("mesas", mesaDto);
         return "mesas";
@@ -71,7 +82,7 @@ public class IndexController {
     public String getDetalhesMesa(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
         if (mesa.isPresent()) {
-            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
+            model.addAttribute("mesa", dadosService.getMesa(mesa.get()));
             return "mesa-detalhe";
         }
         return "error/404";
@@ -80,8 +91,8 @@ public class IndexController {
     @GetMapping("/mesas/{id}/adicionar")
     public String adicionarItem(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
-        if (mesa.isPresent() && mesa.get().getAtivado() && mesa.get().getEstado() == MesaEstados.OCUPADA.getLabel()) {
-            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
+        if (mesa.isPresent() && mesa.get().getAtivado()) {
+            model.addAttribute("mesa", dadosService.getMesa(mesa.get()));
             model.addAttribute("cardapio", dadosService.getCardapio());
             return "adicionar-pedido";
         }
@@ -92,5 +103,39 @@ public class IndexController {
     public String getItensCardapio(Model model) {
         model.addAttribute("cardapio", dadosService.getCardapio());
         return "fragments/item_cardapio :: lista-cardapio";
+    }
+
+    @GetMapping("/admin/dashboard")
+    public String dashboardAdmin(Model model) {
+        Instant hoje = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant amanha = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        model.addAttribute("faturamentoDia", pagamentoRepository.calcularFaturamentoPorPeriodo(hoje, amanha));
+        return "admin-dashboard";
+    }
+
+    @GetMapping("/admin/cardapio")
+    public String gerenciarCardapio(Model model) {
+        // 1. Busque todos os tipos
+        List<TiposCardapioDto> tipos = dadosService.getTiposCardapioAll();
+
+        // 2. Busque todos os itens
+        List<CardapioDto> itens = dadosService.getCardapioAll();
+
+        // 3. Agrupe-os em um Map para facilitar a visualização
+        // Map<TiposCardapioDto, List<CardapioDto>>
+        Map<TiposCardapioDto, List<CardapioDto>> map = new LinkedHashMap<>(); // LinkedHashMap mantém ordem
+
+        for (TiposCardapioDto tipo : tipos) {
+            // Filtra os itens que pertencem a este tipo
+            List<CardapioDto> itensDoTipo = itens.stream()
+                    .filter(i -> i.getTipoId().equals(tipo.getId()))
+                    .collect(Collectors.toList());
+
+            map.put(tipo, itensDoTipo);
+        }
+
+        model.addAttribute("cardapioMap", map);
+
+        return "admin-cardapio";
     }
 }

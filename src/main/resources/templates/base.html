@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout (titulo, conteudo)" lang="pt-br">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout (titulo, conteudo)"
+      lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title th:replace="${titulo} ?: 'Meu Sistema'">Meu Sistema</title>
@@ -33,7 +36,16 @@
         <p>2025.2 UFPI - Teresina</p>
 
         <div class="admin-access">
-            <a href="/login-funcionario" class="employee-link" accesskey="s">Acesso ao Sistema</a>
+            <!-- Link visível apenas se NÃO estiver logado -->
+            <a href="/login-funcionario"
+               class="employee-link"
+               accesskey="s"
+               sec:authorize="!isAuthenticated()">Acesso ao Sistema</a>
+
+            <!-- Link visível apenas se ESTIVER logado -->
+            <a href="/logout"
+               class="employee-link"
+               sec:authorize="isAuthenticated()">Sair do Sistema</a>
         </div>
     </div>
 </footer>

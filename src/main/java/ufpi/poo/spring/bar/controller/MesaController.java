@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ufpi.poo.spring.bar.dao.MesaRepository;
 import ufpi.poo.spring.bar.dto.MesaDto;
 import ufpi.poo.spring.bar.model.Mesa;
+import ufpi.poo.spring.bar.service.DadosService;
 
 import java.util.Optional;
 
@@ -14,6 +15,8 @@ import java.util.Optional;
 public class MesaController {
     @Autowired
     private MesaRepository mesaDao;
+    @Autowired
+    private DadosService dadosService;
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getMesaData(@PathVariable Integer id) {
@@ -21,6 +24,6 @@ public class MesaController {
         if (mesa.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(MesaDto.fromMesa(mesa.get()));
+        return ResponseEntity.ok(dadosService.getMesa(mesa.get()));
     }
 }

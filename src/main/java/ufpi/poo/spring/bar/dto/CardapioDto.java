@@ -12,6 +12,7 @@ import java.io.Serializable;
 @Value
 public class CardapioDto implements Serializable {
     Integer id;
+    Boolean ativado;
     String nome;
     Double valor;
     Integer tipoId;
@@ -21,6 +22,7 @@ public class CardapioDto implements Serializable {
     public static CardapioDto fromCardapio(@NonNull Cardapio item) {
         return new CardapioDto(
                 item.getId(),
+                item.getAtivado(),
                 item.getNome(),
                 item.getValor(),
                 item.getTipo().getId(),

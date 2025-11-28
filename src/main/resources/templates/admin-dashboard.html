@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout (~{::title}, ~{::section})}">
+<head>
+    <title>Administração - Pedrão's Bar</title>
+</head>
+<body>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Painel Administrativo</h2>
+
+        <!-- 1. GRID DE AÇÕES RÁPIDAS (CRUDs) -->
+        <div class="admin-grid">
+            <a href="/admin/mesas" class="admin-card">
+                <i class="fas fa-couch admin-icon"></i>
+                <h3>Gerenciar Mesas</h3>
+                <p>Criar, editar ou remover mesas do salão.</p>
+            </a>
+
+            <a href="/admin/cardapio" class="admin-card">
+                <i class="fas fa-utensils admin-icon"></i>
+                <h3>Cardápio</h3>
+                <p>Gerenciar produtos, preços e categorias.</p>
+            </a>
+
+            <a href="/admin/configuracoes" class="admin-card">
+                <i class="fas fa-sliders-h admin-icon"></i>
+                <h3>Configurações</h3>
+                <p>Taxas de serviço, couvert e sistema.</p>
+            </a>
+
+            <!-- Link para Relatórios Detalhados -->
+            <a href="/admin/relatorios" class="admin-card">
+                <i class="fas fa-chart-line admin-icon"></i>
+                <h3>Relatórios Completos</h3>
+                <p>Histórico e análise de vendas.</p>
+            </a>
+        </div>
+
+        <!-- 2. RESUMO GERENCIAL (Relatórios Rápidos) -->
+        <h3 style="margin-top: 50px; border-bottom: 1px solid #333; padding-bottom: 10px;">Resumo do Dia</h3>
+
+        <!-- Cards de Estatísticas -->
+        <div class="admin-grid">
+            <div class="admin-card stat-card">
+                <span class="stat-label">Faturamento Hoje</span>
+                <!-- Valor vindo do Backend -->
+                <div class="stat-value" th:text="${'R$ ' + #numbers.formatDecimal(faturamentoDia, 1, 'POINT', 2, 'COMMA')}">R$ 1.250,00</div>
+                <small style="color: #4cd137;"><i class="fas fa-arrow-up"></i> 12% vs ontem</small>
+            </div>
+
+            <div class="admin-card stat-card">
+                <span class="stat-label">Mesas Abertas</span>
+                <div class="stat-value" th:text="${mesasAbertasCount}">5</div>
+                <small>De um total de <span th:text="${totalMesas}">15</span></small>
+            </div>
+
+            <div class="admin-card stat-card">
+                <span class="stat-label">Ticket Médio</span>
+                <div class="stat-value" th:text="${'R$ ' + #numbers.formatDecimal(ticketMedio, 1, 'POINT', 2, 'COMMA')}">R$ 85,00</div>
+            </div>
+        </div>
+
+        <!-- 3. TABELAS DE DESTAQUE -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+
+            <!-- Mais Vendidos (Quantidade) -->
+            <div class="config-section" style="margin: 0; padding: 20px;">
+                <h4 style="color: var(--accent); margin-bottom: 15px;">Itens Mais Vendidos (Qtd)</h4>
+                <table class="report-table">
+                    <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qtd</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${topVendidos}">
+                        <td th:text="${item.nome}">Cerveja Heineken</td>
+                        <td th:text="${item.quantidade}">42</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Maior Faturamento (Valor) -->
+            <div class="config-section" style="margin: 0; padding: 20px;">
+                <h4 style="color: var(--accent); margin-bottom: 15px;">Maior Faturamento (R$)</h4>
+                <table class="report-table">
+                    <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${topFaturamento}">
+                        <td th:text="${item.nome}">Picanha na Chapa</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(item.total, 1, 'POINT', 2, 'COMMA')}">R$ 850,00</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

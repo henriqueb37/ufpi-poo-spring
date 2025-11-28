@@ -9,26 +9,37 @@
 
 <section class="section">
     <div class="container">
-        <!-- Botão de Voltar (Já que removemos a Navbar específica) -->
+        <!-- Botão de Voltar -->
         <div style="margin-bottom: 20px;">
             <a href="/mesas" style="color: #a0a0a0; text-decoration: none; font-size: 0.9rem;">
                 <i class="fas fa-arrow-left"></i> Voltar para Mapa
             </a>
         </div>
 
-        <!-- Usando ID do DTO -->
         <h2 class="section-title">Mesa <span th:text="${mesa.id}">01</span></h2>
 
         <div class="comanda-container">
 
-            <!-- Definindo variáveis locais para cálculos de totais -->
+            <!-- COLUNA ESQUERDA: A CONTA (HTMX Polling ativo) -->
+            <!--
+               REMOVIDO: Bloco th:with com lógica de soma complexa.
+               Agora usamos os valores calculados diretamente no DTO pelo Backend.
+               Mantemos apenas 'totalPago' calculado aqui pois não está no DTO explicitamente.
+            -->
             <div class="comanda-box"
-                 th:with="temPedidos=${not #lists.isEmpty(mesa.pedidos)},
-                              subtotal=${temPedidos ? #aggregates.sum(mesa.pedidos.![itemValor * quant]) : 0.0},
-                              totalGorjeta=${temPedidos ? #aggregates.sum(mesa.pedidos.![itemValor * quant * (itemTipoPercGorjeta != null ? itemTipoPercGorjeta : 0) / 100.0]) : 0.0},
-                              totalPago=${not #lists.isEmpty(mesa.pagamentos) ? #aggregates.sum(mesa.pagamentos.![valor]) : 0.0}">
+                 id="painel-consumo"
+                 th:attr="hx-get=@{/mesas/{id}(id=${mesa.id})}"
+                 hx-trigger="every 10s"
+                 hx-select="#painel-consumo"
+                 hx-swap="outerHTML"
+                 th:with="totalPago=${not #lists.isEmpty(mesa.pagamentos) ? #aggregates.sum(mesa.pagamentos.![valor]) : 0.0}">
 
-                <h3 style="color: var(--accent); margin-bottom: 20px;">Consumo</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: var(--accent); margin-bottom: 0;">Consumo</h3>
+                    <span class="htmx-indicator" style="font-size: 0.8rem; color: #666;">
+                            <i class="fas fa-sync fa-spin"></i>
+                        </span>
+                </div>
 
                 <table class="table-items">
                     <thead>
@@ -41,15 +52,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- Iterando sobre Set<PedidoDto> -->
                     <tr th:each="pedido : ${mesa.pedidos}">
                         <td>
                             <div th:text="${pedido.itemNome}">Nome do Item</div>
                             <small style="color: #666;" th:text="${pedido.itemTipoNome}">Tipo</small>
                         </td>
                         <td th:text="${pedido.quant}">1</td>
-                        <td th:text="${#numbers.formatCurrency(pedido.itemValor)}">R$ 0,00</td>
-                        <td th:text="${#numbers.formatCurrency(pedido.itemValor * pedido.quant)}">R$ 0,00</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(pedido.itemValor, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(pedido.itemValor * pedido.quant, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
 
                         <td class="actions" sec:authorize="hasRole('GARCOM')">
                             <button class="btn btn-outline btn-sm"
@@ -67,33 +77,38 @@
                     </tbody>
                 </table>
 
-                <!-- Resumo Financeiro -->
                 <div class="financial-summary">
                     <div class="summary-row">
                         <span>Subtotal</span>
-                        <span th:text="${#numbers.formatCurrency(subtotal)}">R$ 0,00</span>
+                        <!-- Valor direto do DTO -->
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.subtotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
                     <div class="summary-row">
                         <span>Serviço (Gorjeta)</span>
-                        <span th:text="${#numbers.formatCurrency(totalGorjeta)}">R$ 0,00</span>
+                        <!-- Valor direto do DTO -->
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.gorjeta, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
                     <div class="summary-row">
-                            <span>Entrada/Couvert
+                            <span>Entrada
+                                <!-- Exibe número de pessoas -->
+                                <small style="color: #888;">(<span th:text="${mesa.nPessoas}">1</span> pessoas)</small>
                                 <small th:if="${!mesa.pagaEntrada}">(Isento)</small>
                             </span>
-                        <span th:text="${mesa.pagaEntrada ? 'Ativo' : 'R$ 0,00'}">Status</span>
+                        <!-- Valor direto do DTO (total das entradas) -->
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.entrada, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
                     <div class="summary-row" th:if="${totalPago > 0}">
                         <span style="color: #27ae60;">Já Pago</span>
-                        <span style="color: #27ae60;" th:text="${'- ' + #numbers.formatCurrency(totalPago)}">R$ 0,00</span>
+                        <span style="color: #27ae60;" th:text="${'- R$ ' + #numbers.formatDecimal(totalPago, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
                     <div class="summary-row total">
-                        <span>TOTAL (Est.)</span>
-                        <span th:text="${#numbers.formatCurrency(subtotal + totalGorjeta - totalPago)}">R$ 0,00</span>
+                        <span>TOTAL</span>
+                        <!-- Total do DTO subtraindo o que já foi pago -->
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.total - totalPago, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
                 </div>
             </div>
@@ -104,15 +119,35 @@
                     <h3>Operações</h3>
 
                     <div class="action-btn-group">
-                        <a th:href="@{/mesas/{id}/adicionar(id=${mesa.id})}" class="btn btn-primary">
+                        <!-- Atualização de Pessoas -->
+                        <form th:action="@{/mesas/{id}/pessoas(id=${mesa.id})}" method="post" style="margin-bottom: 10px;">
+                            <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px; display: block;">Nº de Pessoas:</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="number" name="nPessoas" th:value="${mesa.nPessoas}" min="1"
+                                       style="background: #121212; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; width: 60px; text-align: center;">
+                                <button type="submit" class="btn btn-outline btn-sm" style="flex-grow: 1;">
+                                    <i class="fas fa-users"></i> Atualizar
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr style="border-color: #333; margin: 5px 0 15px 0;">
+
+                        <a th:href="@{/mesas/{id}/adicionar(id=${mesa.id})}"
+                           class="btn btn-primary"
+                           th:if="${mesa.estado == 1}">
                             <i class="fas fa-plus"></i> Adicionar Item
                         </a>
 
-                        <!-- Toggle Entrada -->
+                        <div th:unless="${mesa.estado == 1}"
+                             style="text-align: center; padding: 10px; border: 1px dashed #444; color: #666; font-size: 0.85rem;">
+                            <i class="fas fa-ban"></i> Mesa fechada para pedidos.
+                        </div>
+
                         <form th:action="@{/mesas/{id}/toggle-entrada(id=${mesa.id})}" method="post">
                             <button type="submit" class="btn btn-outline" style="width: 100%;">
                                 <i class="fas fa-ticket-alt"></i>
-                                <span th:text="${mesa.pagaEntrada ? 'Isentar Entrada' : 'Cobrar Entrada'}">Entrada</span>
+                                <span th:text="${mesa.pagaEntrada ? 'Isentar Entradas' : 'Cobrar Entradas'}">Entrada</span>
                             </button>
                         </form>
 
@@ -122,7 +157,10 @@
                             <i class="fas fa-dollar-sign"></i> Registrar Pagamento
                         </a>
 
-                        <form th:action="@{/mesas/{id}/fechar(id=${mesa.id})}" method="post" onsubmit="return confirm('Confirma o fechamento da mesa?');">
+                        <form th:if="${mesa.estado == 1}"
+                              th:action="@{/mesas/{id}/fechar(id=${mesa.id})}"
+                              method="post"
+                              onsubmit="return confirm('Confirma o fechamento da mesa?');">
                             <button type="submit" class="btn btn-danger" style="width: 100%;">
                                 <i class="fas fa-lock"></i> Fechar Mesa
                             </button>
@@ -133,7 +171,6 @@
 
         </div>
 
-        <!-- Script movido para dentro da section para ser incluído no layout -->
         <script>
             function abrirModalCancelamento(btn) {
                 const idItem = btn.getAttribute('data-id');
