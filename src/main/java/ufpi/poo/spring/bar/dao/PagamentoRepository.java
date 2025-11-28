@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ufpi.poo.spring.bar.model.Pagamento;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface PagamentoRepository extends JpaRepository<Pagamento, Integer> {
@@ -19,4 +20,11 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Integer> {
             "FROM Pagamento p " +
             "WHERE p.idMesa.id = :idMesa")
     Double calcularTotalPagoMesa(@Param("idMesa") Integer idMesa);
+
+
+    // RELATÓRIO 3: Faturamento por Período
+    @Query("SELECT COALESCE(SUM(p.valor), 0.0) " +
+            "FROM Pagamento p " +
+            "WHERE p.hora BETWEEN :inicio AND :fim")
+    Double calcularFaturamentoPorPeriodo(Instant inicio, Instant fim);
 }

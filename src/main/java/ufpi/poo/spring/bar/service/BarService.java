@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ufpi.poo.spring.bar.dao.*;
+import ufpi.poo.spring.bar.dto.ItemRelatorioDto;
 import ufpi.poo.spring.bar.misc.MesaEstados;
 import ufpi.poo.spring.bar.model.*;
 
@@ -206,5 +207,30 @@ public class BarService {
         }
 
         return totalItens + totalGorjeta;
+    }
+
+
+    // --- RELATÓRIOS ADMINISTRATIVOS (Novos Métodos) ---
+
+    /**
+     * Retorna o valor total faturado (soma dos pagamentos) no período.
+     */
+    public Double gerarRelatorioFaturamento(Instant inicio, Instant fim) {
+        return pagamentoRepository.calcularFaturamentoPorPeriodo(inicio, fim);
+    }
+
+    /**
+     * Retorna lista de itens mais vendidos por quantidade.
+     */
+    public List<ItemRelatorioDto> gerarRelatorioMaisVendidos(Instant inicio, Instant fim) {
+        // Retorna a lista completa ordenada pelo banco
+        return pedidoRepository.findItensMaisVendidos(inicio, fim);
+    }
+
+    /**
+     * Retorna lista de itens que geraram maior receita (Quantidade * Valor).
+     */
+    public List<ItemRelatorioDto> gerarRelatorioMelhoresItens(Instant inicio, Instant fim) {
+        return pedidoRepository.findItensMaiorFaturamento(inicio, fim);
     }
 }

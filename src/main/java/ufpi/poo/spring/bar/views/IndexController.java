@@ -80,7 +80,7 @@ public class IndexController {
     @GetMapping("/mesas/{id}/adicionar")
     public String adicionarItem(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
-        if (mesa.isPresent() && mesa.get().getAtivado() && mesa.get().getEstado() == MesaEstados.ABERTA.getLabel()) {
+        if (mesa.isPresent() && mesa.get().getAtivado() && mesa.get().getEstado() == MesaEstados.OCUPADA.getLabel()) {
             model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
             model.addAttribute("cardapio", dadosService.getCardapio());
             return "adicionar-pedido";

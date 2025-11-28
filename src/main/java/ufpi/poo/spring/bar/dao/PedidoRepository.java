@@ -3,8 +3,10 @@ package ufpi.poo.spring.bar.dao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import ufpi.poo.spring.bar.dto.ItemRelatorioDto;
 import ufpi.poo.spring.bar.model.Pedido;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
@@ -29,4 +31,23 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
             "JOIN c.tipo t " +
             "WHERE p.mesa.id = :idMesa")
     Double calcularGorjetaMesa(@Param("idMesa") Integer idMesa);
+
+    // RELATÓRIO 1: Itens Mais Vendidos (Por Quantidade)
+    @Query("SELECT p.item.nome AS nomeItem, SUM(p.quant) AS quantidadeTotal " +
+            "FROM Pedido p " +
+            "WHERE p.hora BETWEEN :inicio AND :fim " +
+            "AND p.cancelamento IS NULL " + // Ignora cancelados
+            "GROUP BY p.item.nome " +
+            "ORDER BY quantidadeTotal DESC")
+    List<ItemRelatorioDto> findItensMaisVendidos(Instant inicio, Instant fim);
+
+    // RELATÓRIO 2: Itens com Maior Faturamento (Por Valor)
+    // OBS: Aqui usamos 'p.item.valor' pois revertemos a regra do Price Snapshot
+    @Query("SELECT p.item.nome AS nomeItem, SUM(p.quant * p.item.valor) AS valorTotal " +
+            "FROM Pedido p " +
+            "WHERE p.hora BETWEEN :inicio AND :fim " +
+            "AND p.cancelamento IS NULL " +
+            "GROUP BY p.item.nome " +
+            "ORDER BY valorTotal DESC")
+    List<ItemRelatorioDto> findItensMaiorFaturamento(Instant inicio, Instant fim);
 }
