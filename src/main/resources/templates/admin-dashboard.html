@@ -30,7 +30,6 @@
                 <p>Taxas de serviço, couvert e sistema.</p>
             </a>
 
-            <!-- Link para Relatórios Detalhados -->
             <a href="/admin/relatorios" class="admin-card">
                 <i class="fas fa-chart-line admin-icon"></i>
                 <h3>Relatórios Completos</h3>
@@ -38,16 +37,14 @@
             </a>
         </div>
 
-        <!-- 2. RESUMO GERENCIAL (Relatórios Rápidos) -->
-        <h3 style="margin-top: 50px; border-bottom: 1px solid #333; padding-bottom: 10px;">Resumo do Dia</h3>
+        <!-- 2. RESUMO GERENCIAL -->
+        <h3 class="config-header">Resumo do Dia</h3>
 
-        <!-- Cards de Estatísticas -->
         <div class="admin-grid">
             <div class="admin-card stat-card">
                 <span class="stat-label">Faturamento Hoje</span>
-                <!-- Valor vindo do Backend -->
                 <div class="stat-value" th:text="${'R$ ' + #numbers.formatDecimal(faturamentoDia, 1, 'POINT', 2, 'COMMA')}">R$ 1.250,00</div>
-                <small style="color: #4cd137;"><i class="fas fa-arrow-up"></i> 12% vs ontem</small>
+                <small class="text-success"><i class="fas fa-arrow-up"></i> 12% vs ontem</small>
             </div>
 
             <div class="admin-card stat-card">
@@ -63,9 +60,9 @@
         </div>
 
         <!-- 3. TABELAS DE DESTAQUE -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <div class="form-grid">
 
-            <!-- Mais Vendidos (Quantidade) -->
+            <!-- Mais Vendidos -->
             <div class="config-section" style="margin: 0; padding: 20px;">
                 <h4 style="color: var(--accent); margin-bottom: 15px;">Itens Mais Vendidos (Qtd)</h4>
                 <table class="report-table">
@@ -84,7 +81,7 @@
                 </table>
             </div>
 
-            <!-- Maior Faturamento (Valor) -->
+            <!-- Maior Faturamento -->
             <div class="config-section" style="margin: 0; padding: 20px;">
                 <h4 style="color: var(--accent); margin-bottom: 15px;">Maior Faturamento (R$)</h4>
                 <table class="report-table">

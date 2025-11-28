@@ -9,23 +9,21 @@
 <section class="section">
     <div class="container">
 
-        <!-- Navegação Superior -->
         <div style="margin-bottom: 30px;">
-            <a href="/admin/dashboard" style="color: #a0a0a0; text-decoration: none;">
+            <a href="/admin/dashboard" class="link-back">
                 <i class="fas fa-arrow-left"></i> Voltar ao Painel
             </a>
         </div>
 
         <h2 class="section-title">Gerenciar Mesas</h2>
 
-        <!-- Feedback de Sucesso -->
-        <div th:if="${param.sucesso}" style="margin-bottom: 20px; padding: 10px; background: rgba(39, 174, 96, 0.2); border: 1px solid #27ae60; color: #27ae60; border-radius: 4px; text-align: center;">
+        <div th:if="${param.sucesso}" class="alert-success">
             <i class="fas fa-check"></i> Operação realizada com sucesso!
         </div>
 
         <!-- 1. CRIAÇÃO DE NOVA MESA -->
         <div class="config-section">
-            <h3 style="color: #fff; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <h3 class="config-header">
                 <i class="fas fa-plus-circle" style="margin-right: 10px; color: var(--accent);"></i>
                 Cadastrar Nova Mesa
             </h3>
@@ -34,7 +32,7 @@
                 <div class="input-group" style="margin-bottom: 0; flex-grow: 1; max-width: 200px;">
                     <label for="novoNumero">Número da Mesa</label>
                     <input type="number" id="novoNumero" name="numero" class="input-price"
-                           style="background: #121212; border: 1px solid #444; padding: 10px;"
+                           style="background: var(--bg-input); border: 1px solid var(--border-light); padding: 10px;"
                            placeholder="Ex: 15" required>
                 </div>
 
@@ -45,13 +43,13 @@
         </div>
 
         <!-- 2. LISTA DE MESAS EXISTENTES -->
-        <div class="items-table-container" style="border-radius: 8px; border-top: 1px solid #333;">
+        <div class="items-table-container" style="border-radius: 8px; border-top: 1px solid var(--border-color);">
 
-            <!-- Cabeçalho da Tabela -->
-            <div style="display: grid; grid-template-columns: 0.5fr 2fr 1fr 1fr; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid #444; color: var(--accent); font-size: 0.8rem; text-transform: uppercase;">
-                <div style="text-align: center;">Nº</div>
+            <!-- Cabeçalho (inline style convertido para variáveis onde possível, ou mantido grid específico) -->
+            <div style="display: grid; grid-template-columns: 0.5fr 2fr 1fr 1fr; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light); color: var(--accent); font-size: 0.8rem; text-transform: uppercase;">
+                <div class="text-center">Nº</div>
                 <div>Estado Atual</div>
-                <div style="text-align: center;">Ativa</div>
+                <div class="text-center">Ativa</div>
                 <div style="text-align: right;">Ação</div>
             </div>
 
@@ -62,33 +60,26 @@
 
                     <input type="hidden" name="id" th:value="${mesa.id}">
 
-                    <!-- Número da Mesa (Visual apenas, ou editável se preferir) -->
                     <div style="text-align: center; font-family: var(--font-heading); font-size: 1.2rem; color: #fff;">
                         <span th:text="${mesa.id}">01</span>
-                        <!-- Se o ID for gerado e você tiver um campo 'numero' separado, use mesa.numero aqui -->
                     </div>
 
-                    <!-- Select de Estado (Livre/Ocupada/Pagamento) -->
                     <div>
                         <select name="estado"
-                                style="width: 100%; padding: 8px; background: #121212; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                                style="width: 100%; padding: 8px; background: var(--bg-input); border: 1px solid var(--border-light); color: #fff; border-radius: 4px;">
                             <option value="0" th:selected="${mesa.estado == 0}">🟢 LIVRE</option>
                             <option value="1" th:selected="${mesa.estado == 1}">🔴 OCUPADA</option>
                             <option value="2" th:selected="${mesa.estado == 2}">🟡 EM PAGAMENTO</option>
                         </select>
                     </div>
 
-                    <!-- Toggle Ativar/Desativar -->
                     <div style="display: flex; align-items: center; justify-content: center;">
                         <label class="switch">
-                            <!-- Assumindo que MesaDto tem um campo 'ativa' ou similar.
-                                 Se não tiver, você precisará adicionar no Backend. -->
                             <input type="checkbox" name="ativa" th:checked="${mesa.ativa}">
                             <span class="slider"></span>
                         </label>
                     </div>
 
-                    <!-- Botão Salvar -->
                     <div style="text-align: right;">
                         <button type="submit" class="btn btn-outline btn-sm" title="Salvar Alterações">
                             <i class="fas fa-save"></i> Salvar
@@ -97,8 +88,7 @@
                 </form>
             </div>
 
-            <!-- Estado Vazio -->
-            <div th:if="${#lists.isEmpty(mesas)}" style="text-align: center; padding: 40px; color: #666;">
+            <div th:if="${#lists.isEmpty(mesas)}" style="text-align: center; padding: 40px;" class="text-dim">
                 Nenhuma mesa cadastrada. Utilize o formulário acima para começar.
             </div>
 
