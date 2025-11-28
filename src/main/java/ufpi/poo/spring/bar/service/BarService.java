@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ufpi.poo.spring.bar.dao.*;
+import ufpi.poo.spring.bar.misc.MesaEstados;
 import ufpi.poo.spring.bar.model.*;
 
 import java.time.Instant;
@@ -53,30 +54,28 @@ public class BarService {
     }
 
     /**
-     * Adiciona um item (Pedido) à mesa.
+     * ATUALIZADO: Adiciona um item.
+     * Regra: Só aceita se estado for 1 (OCUPADA).
      */
     @Transactional
     public void adicionarPedido(Integer idMesa, Integer idItem, Integer quantidade) {
         Mesa mesa = buscarMesaPorId(idMesa);
 
-        // Regra: Mesa deve estar aberta
-        if (mesa.getEstado() != 1) {
-            throw new RuntimeException("A mesa " + idMesa + " está fechada. Abra a mesa primeiro.");
+        // Se estiver LIVRE (0) ou EM_PAGAMENTO (2), bloqueia.
+        if (mesa.getEstado() != MesaEstados.OCUPADA.getLabel()) {
+            throw new RuntimeException("Não é possível fazer pedidos. A mesa " + idMesa +
+                    " está no estado: " + MesaEstados.fromId(mesa.getEstado()));
         }
 
-        Cardapio item = cardapioRepository.findById(idItem)
-                .orElseThrow(() -> new RuntimeException("Item do cardápio não encontrado: " + idItem));
-
+        // ... (resto da lógica de buscar item e salvar pedido igual ao anterior) ...
+        Cardapio item = cardapioRepository.findById(idItem).orElseThrow();
         Pedido novoPedido = new Pedido();
         novoPedido.setMesa(mesa);
         novoPedido.setItem(item);
         novoPedido.setQuant(quantidade);
         novoPedido.setHora(Instant.now());
-        novoPedido.setCancelamento(null); // Não está cancelado
-
         pedidoRepository.save(novoPedido);
     }
-
     /**
      * Cancela um item (Auditoria).
      * Em vez de deletar, salvamos o motivo no campo 'cancelamento'.
@@ -124,32 +123,57 @@ public class BarService {
     }
 
     /**
-     * Fecha a mesa (Encerra o atendimento).
+     * MUDANÇA DE LÓGICA: Fechar Mesa (Encerrar Consumo).
+     * Transição: 1 (Ocupada) -> 2 (Em Pagamento).
+     * Não exige pagamento total agora. Apenas bloqueia novos pedidos.
      */
     @Transactional
     public void fecharMesa(Integer idMesa) {
         Mesa mesa = buscarMesaPorId(idMesa);
 
-        // Validações
-        if (mesa.getEstado() == 0) {
-            throw new RuntimeException("Mesa já está livre.");
+        // Só pode fechar se estiver Ocupada
+        if (mesa.getEstado() != MesaEstados.OCUPADA.getLabel()) {
+            throw new RuntimeException("A mesa não está ocupada para ser fechada.");
         }
 
-        // Regra de Ouro: Só fecha se estiver pago
+        // Muda estado para 2 (Bloqueia pedidos, libera pagamento final)
+        mesa.setEstado(MesaEstados.EM_PAGAMENTO.getLabel());
+        mesaRepository.save(mesa);
+    }
+
+
+    /**
+     * NOVO MÉTODO: Liberar Mesa (Finalizar Atendimento).
+     * Transição: 2 (Em Pagamento) -> 0 (Livre).
+     * Regra: Só libera se o saldo for ZERO.
+     */
+    @Transactional
+    public void liberarMesa(Integer idMesa) {
+        Mesa mesa = buscarMesaPorId(idMesa);
+
+        // Validação: Só libera se estiver em fase de pagamento
+        if (mesa.getEstado() != MesaEstados.EM_PAGAMENTO.getLabel()) {
+            throw new RuntimeException("A mesa precisa ser fechada (estado 'Em Pagamento') antes de ser liberada.");
+        }
+
+        // Validação Financeira (A regra rígida moveu-se para cá)
         double totalConta = calcularTotalGeral(idMesa);
         double totalPago = pagamentoRepository.calcularTotalPagoMesa(idMesa);
         double saldoPend = totalConta - totalPago;
 
-        if (saldoPend > 0.009) { // Margem de segurança de 5 centavos
-            throw new RuntimeException("Não é possível fechar. Ainda há saldo devedor de R$ " + String.format("%.2f", saldoPend));
+        if (saldoPend > 0.009) {
+            throw new RuntimeException("Mesa não pode ser liberada. Saldo pendente: R$ " + String.format("%.2f", saldoPend));
         }
 
-        // Resetar a mesa
-        mesa.setEstado(0); // Livre
-        mesa.setAtivado(true);
-        // Opcional: Limpar dados ou arquivar
+        // Tudo pago! Libera a mesa para o próximo cliente.
+        mesa.setEstado(MesaEstados.LIVRE.getLabel());
+
+        // Opcional: Aqui você pode "arquivar" os pedidos/pagamentos se quiser limpar a mesa visualmente
+        // Mas como seu banco guarda histórico, apenas mudar o estado já basta.
+
         mesaRepository.save(mesa);
     }
+
 
     // --- MÉTODOS DE CÁLCULO (Auxiliares) ---
 
