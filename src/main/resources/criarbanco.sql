@@ -71,3 +71,10 @@ select * from pedidos;
 select * from mesas;
 
 update pedidos set hora = current_timestamp where id = 1 or id = 2;
+
+CREATE TABLE configuracoes (
+    id INT PRIMARY KEY,
+    valor_couvert DECIMAL(10, 2) NOT NULL DEFAULT 0.00
+);
+
+insert into configuracoes (id, valor_couvert) VALUES (1, 5);

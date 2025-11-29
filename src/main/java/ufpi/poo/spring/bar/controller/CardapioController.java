@@ -10,8 +10,10 @@ import ufpi.poo.spring.bar.dao.CardapioRepository;
 import ufpi.poo.spring.bar.dao.TiposCardapioRepository;
 import ufpi.poo.spring.bar.model.Cardapio;
 import ufpi.poo.spring.bar.model.TiposCardapio;
+import ufpi.poo.spring.bar.service.ConfiguracaoService;
+import ufpi.poo.spring.bar.service.DadosService;
 
-import java.util.List;
+import java.util.*;
 
 @Controller
 @RequestMapping("/admin/cardapio")
@@ -20,6 +22,29 @@ public class CardapioController {
 
     @Autowired private CardapioRepository cardapioRepository;
     @Autowired private TiposCardapioRepository tiposRepository;
+    @Autowired private DadosService dadosService;
+    @Autowired private ConfiguracaoService configuracaoService;
+
+    @GetMapping("")
+    public String gerenciarCardapio(Model model) {
+        List<TiposCardapio> tipos = dadosService.getTiposCardapioAll();
+
+        Map<TiposCardapio, List<Cardapio>> map = new LinkedHashMap<>();
+
+        for (var tipo : tipos) {
+            List<Cardapio> l = new ArrayList<>(tipo.getCardapios());
+            l.sort(Comparator.comparing(Cardapio::getId));
+            map.put(tipo, l);
+        }
+
+        Double valorEntrada = configuracaoService.getConfiguracaoAtual().getValorCouvert();
+        model.addAttribute("valorEntrada", valorEntrada);
+        // ---------------------------------------------------------------------
+
+        model.addAttribute("cardapioMap", map);
+
+        return "admin-cardapio";
+    }
 
     // 1. Tela de Cadastro (Novo Item)
     @GetMapping("/novo")

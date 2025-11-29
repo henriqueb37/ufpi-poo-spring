@@ -2,93 +2,117 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{base :: layout (~{::title}, ~{::section})}">
 <head>
-    <title>Gerenciar Mesas - Admin</title>
+    <title>Gerenciar Mesas - Pedrão's Bar</title>
 </head>
 <body>
 
 <section class="section">
     <div class="container">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title">Gerenciar Mesas</h2>
-            <a href="/admin/dashboard" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar
+        <div style="margin-bottom: 30px;">
+            <a href="/admin/dashboard" class="link-back">
+                <i class="fas fa-arrow-left"></i> Voltar ao Painel
             </a>
         </div>
 
-        <div th:if="${sucesso}" class="alert alert-success">
-            <i class="fas fa-check-circle"></i> <span th:text="${sucesso}"></span>
-        </div>
-        <div th:if="${erro}" class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i> <span th:text="${erro}"></span>
+        <h2 class="section-title">Gerenciar Mesas</h2>
+
+        <div th:if="${param.sucesso}" class="alert-success">
+            <i class="fas fa-check"></i> Operação realizada com sucesso!
         </div>
 
-        <div class="card shadow-sm mb-5" style="border: 1px solid #333;">
-            <div class="card-header bg-dark text-white">
-                <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Cadastrar Nova Mesa</h4>
+        <!-- CRIAÇÃO DE NOVA MESA -->
+        <div class="config-section">
+            <h3 class="config-header">
+                <i class="fas fa-plus-circle" style="margin-right: 10px; color: var(--accent);"></i>
+                Cadastrar Nova Mesa
+            </h3>
+
+            <form th:action="@{/admin/mesas/criar}" method="post" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+
+                <!-- Input Número -->
+                <div class="input-group" style="margin-bottom: 0; flex-grow: 1; max-width: 150px;">
+                    <label for="novoNumero">Número</label>
+                    <input type="number" id="novoNumero" name="idMesa" class="input-price"
+                           style="background: var(--bg-input); border: 1px solid var(--border-light); padding: 10px;"
+                           placeholder="Ex: 15" required>
+                </div>
+
+                <!-- Input Capacidade -->
+                <div class="input-group" style="margin-bottom: 0; flex-grow: 1; max-width: 150px;">
+                    <label for="novaCapacidade">Capacidade</label>
+                    <input type="number" id="novaCapacidade" name="capacidade" class="input-price"
+                           style="background: var(--bg-input); border: 1px solid var(--border-light); padding: 10px;"
+                           placeholder="Ex: 4" required min="1">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="height: 46px;">
+                    Criar Mesa
+                </button>
+            </form>
+        </div>
+
+        <!-- LISTA DE MESAS EXISTENTES -->
+        <div class="items-table-container" style="border-radius: 8px; border-top: 1px solid var(--border-color);">
+
+            <div style="display: grid; grid-template-columns: 0.5fr 1fr 2fr 1fr 1fr; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light); color: var(--accent); font-size: 0.8rem; text-transform: uppercase;">
+                <div class="text-center">Nº</div>
+                <div class="text-center">Lugares</div> <!-- Coluna Nova -->
+                <div>Estado Atual</div>
+                <div class="text-center">Ativa</div>
+                <div style="text-align: right;">Ação</div>
             </div>
-            <div class="card-body">
-                <form th:action="@{/admin/mesas/criar}" method="post" class="row g-3 align-items-end">
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Número da Mesa:</label>
-                        <input type="number" name="idMesa" class="form-control" placeholder="Ex: 10" required min="1">
+            <!-- Loop de Mesas -->
+            <div th:each="mesa : ${mesas}">
+                <form th:action="@{/admin/mesas/salvar}" method="post" class="edit-row"
+                      style="grid-template-columns: 0.5fr 1fr 2fr 1fr 1fr;">
+
+                    <input type="hidden" name="id" th:value="${mesa.id}">
+
+                    <!-- Número (ID) -->
+                    <div style="text-align: center; font-family: var(--font-heading); font-size: 1.2rem; color: var(--font-body);">
+                        <span th:text="${mesa.id}">01</span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Capacidade (Pessoas):</label>
-                        <input type="number" name="capacidade" class="form-control" placeholder="Ex: 4" required min="1">
+                    <!-- Capacidade (NOVO) -->
+                    <div>
+                        <input type="number" name="capacidade" th:value="${mesa.capacidade}"
+                               class="input-price" style="text-align: center;" min="1" required>
                     </div>
 
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--accent); border: none; color: black; font-weight: bold;">
-                            CRIAR MESA
+                    <!-- Estado -->
+                    <div>
+                        <select name="estado"
+                                style="width: 100%; padding: 8px; background: var(--bg-input); border: 1px solid var(--border-light); color: var(--font-body); border-radius: 4px;">
+                            <option value="0" th:selected="${mesa.estado == 0}">🟢 LIVRE</option>
+                            <option value="1" th:selected="${mesa.estado == 1}">🔴 OCUPADA</option>
+                            <option value="2" th:selected="${mesa.estado == 2}">🟡 EM PAGAMENTO</option>
+                        </select>
+                    </div>
+
+                    <!-- Ativo (Checkbox Manual com _ativado) -->
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <label class="switch">
+                            <input type="hidden" name="_ativado" value="on">
+                            <input type="checkbox" name="ativado" th:checked="${mesa.ativado}">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Botão Salvar -->
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-outline btn-sm" title="Salvar Alterações">
+                            <i class="fas fa-save"></i> Salvar
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Mesas Cadastradas</h5>
+            <div th:if="${#lists.isEmpty(mesas)}" style="text-align: center; padding: 40px;" class="text-dim">
+                Nenhuma mesa cadastrada. Utilize o formulário acima para começar.
             </div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th style="width: 20%;">Mesa Nº</th>
-                        <th style="width: 30%;">Capacidade</th>
-                        <th style="width: 30%;">Status Atual</th>
-                        <th style="width: 20%;">Ação</th>
-                    </tr>
-                    </thead>
-                    <tbody>
 
-                    <tr th:each="mesa : ${mesas}">
-                        <td th:text="${'Mesa ' + mesa.id}" style="font-weight: bold;">Mesa 1</td>
-
-                        <td th:text="${mesa.capacidade + ' lugares'}">4 lugares</td>
-
-                        <td>
-                            <span th:if="${mesa.estado == 0}" class="badge bg-success">Livre</span>
-                            <span th:if="${mesa.estado == 1}" class="badge bg-danger">Ocupada</span>
-                            <span th:if="${mesa.estado == 2}" class="badge bg-warning text-dark">Pagamento</span>
-                        </td>
-
-                        <td>
-                            <button class="btn btn-sm btn-outline-danger" disabled title="Excluir indisponível">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr th:if="${#lists.isEmpty(mesas)}">
-                        <td colspan="4" class="text-center py-3 text-muted">Nenhuma mesa cadastrada.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
 
     </div>

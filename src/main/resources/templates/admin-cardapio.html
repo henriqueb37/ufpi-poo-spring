@@ -9,113 +9,123 @@
 <section class="section">
     <div class="container">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="section-title mb-0">Cardápio & Preços</h2>
-                <p class="text-muted">Gerencie produtos, taxas e couvert.</p>
-            </div>
+        <!-- Navegação Superior -->
+        <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/admin/dashboard" style="color: #a0a0a0; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Voltar ao Painel
+            </a>
 
-            <div class="btn-group">
-                <a href="/admin/dashboard" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </a>
-                <a href="/admin/cardapio/novo" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Novo Item
-                </a>
-            </div>
+            <!-- Botão para Criar Novo Item -->
+            <a href="/admin/cardapio/novo" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Novo Item
+            </a>
         </div>
 
-        <div th:if="${sucesso}" class="alert alert-success">
-            <i class="fas fa-check-circle"></i> <span th:text="${sucesso}"></span>
-        </div>
-        <div th:if="${erro}" class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i> <span th:text="${erro}"></span>
-        </div>
+        <h2 class="section-title">Cardápio & Preços</h2>
 
-        <div class="card mb-5 shadow-sm border-warning" style="border-left-width: 5px;">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <h4 class="mb-0"><i class="fas fa-ticket-alt text-warning"></i> Valor da Entrada (Couvert)</h4>
-                    <small class="text-muted">Este valor será multiplicado pelo nº de pessoas na mesa.</small>
-                </div>
-
-                <form th:action="@{/admin/config/salvar-entrada}" method="post" class="d-flex gap-2">
-                    <div class="input-group">
-                        <span class="input-group-text">R$</span>
-                        <input type="number" step="0.50" name="valorEntrada"
-                               th:value="${valorEntrada ?: 0.00}"
-                               class="form-control" style="width: 100px;" placeholder="0.00">
-                    </div>
-                    <button type="submit" class="btn btn-dark">Salvar</button>
-                </form>
-            </div>
+        <!-- Feedback de Sucesso -->
+        <div th:if="${param.sucesso}" style="margin-bottom: 20px; padding: 10px; background: rgba(39, 174, 96, 0.2); border: 1px solid #27ae60; color: #27ae60; border-radius: 4px; text-align: center;">
+            <i class="fas fa-check"></i> Alterações salvas com sucesso!
         </div>
 
-        <div th:each="entry : ${cardapioMap}" class="card mb-4 shadow-sm">
+        <!-- CONFIGURAÇÃO RÁPIDA DE ENTRADA (NOVO) -->
+        <div class="type-header" style="margin-bottom: 40px; border-radius: 8px; border-bottom: 1px solid #333;">
+            <h3 class="type-title" style="font-size: 1.3rem;">
+                <i class="fas fa-ticket-alt" style="margin-right: 10px; color: var(--accent);"></i>
+                Valor da Entrada
+            </h3>
 
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-utensils"></i> <span th:text="${entry.key.nome}">Categoria</span>
-                </h4>
+            <!-- Form para editar o valor global da Entrada -->
+            <form th:action="@{/admin/config/salvar-entrada}" method="post" class="inline-edit-form">
+                <label style="color: #ccc; font-size: 0.9rem;">Couvert (R$):</label>
+                <!-- Assumindo que o controller passa 'valorEntrada' no model -->
+                <input type="number" step="0.50" name="valorEntrada" th:value="${valorEntrada}" class="input-mini" style="width: 100px;" placeholder="0.00">
 
-                <form th:action="@{/admin/config/salvar-taxa}" method="post" class="d-flex align-items-center gap-2">
+                <button type="submit" class="btn btn-outline btn-sm" title="Atualizar Entrada">
+                    <i class="fas fa-save"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- LOOP POR TIPO DE CARDÁPIO (Map<TiposCardapioDto, List<CardapioDto>>) -->
+        <div th:each="entry : ${cardapioMap}">
+
+            <!-- 1. CABEÇALHO DO TIPO (Editar Gorjeta) -->
+            <div class="type-header">
+                <h3 class="type-title" th:text="${entry.key.nome}">Bebidas</h3>
+
+                <!-- Form para editar a gorjeta deste Tipo -->
+                <form th:action="@{/admin/config/salvar-taxa}" method="post" class="inline-edit-form">
                     <input type="hidden" name="id" th:value="${entry.key.id}">
-                    <label class="mb-0" style="font-size: 0.9rem;">Taxa (%):</label>
-                    <input type="number" step="0.1" name="percGorjeta"
-                           th:value="${entry.key.percGorjeta}"
-                           class="form-control form-control-sm" style="width: 70px;">
-                    <button type="submit" class="btn btn-sm btn-warning" title="Salvar Taxa">
+
+                    <label style="color: #ccc; font-size: 0.9rem;">Taxa (%):</label>
+                    <input type="number" step="0.1" name="percGorjeta" th:value="${entry.key.percGorjeta}" class="input-mini">
+
+                    <button type="submit" class="btn btn-outline btn-sm" title="Salvar Taxa">
                         <i class="fas fa-save"></i>
                     </button>
                 </form>
             </div>
 
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th style="width: 50%;">Item</th>
-                        <th style="width: 20%;">Preço</th>
-                        <th style="width: 15%;">Status</th>
-                        <th style="width: 15%; text-align: right;">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+            <!-- 2. LISTA DE ITENS DO TIPO -->
+            <div class="items-table-container">
 
-                    <tr th:each="item : ${entry.value}">
-                        <td th:text="${item.nome}" style="font-weight: 500;">Nome</td>
-                        <td th:text="${'R$ ' + #numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-                        <td>
-                            <span th:if="${item.ativado}" class="badge bg-success">Ativo</span>
-                            <span th:unless="${item.ativado}" class="badge bg-secondary">Inativo</span>
-                        </td>
-                        <td style="text-align: right;">
-                            <div class="btn-group btn-group-sm">
-                                <a th:href="@{/admin/cardapio/editar/{id}(id=${item.id})}"
-                                   class="btn btn-outline-primary" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form th:action="@{/admin/cardapio/excluir/{id}(id=${item.id})}"
-                                      method="post" style="display: inline;"
-                                      onsubmit="return confirm('Desativar este item?');">
-                                    <button type="submit" class="btn btn-outline-danger" title="Remover">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
+                <!-- Cabeçalho da Tabela Visual -->
+                <div style="display: grid; grid-template-columns: 3fr 1fr 1fr 0.5fr; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid #444; color: var(--accent); font-size: 0.8rem; text-transform: uppercase;">
+                    <div>Item</div>
+                    <div>Preço (R$)</div>
+                    <div>Disponível</div>
+                    <div>Ação</div>
+                </div>
 
-                    <tr th:if="${#lists.isEmpty(entry.value)}">
-                        <td colspan="4" class="text-center text-muted py-3">
-                            Nenhum item cadastrado nesta categoria.
-                        </td>
-                    </tr>
+                <!-- Loop dos Itens -->
+                <div th:each="item : ${entry.value}">
 
-                    </tbody>
-                </table>
+                    <!-- Form individual por item -->
+                    <form th:action="@{/admin/cardapio/salvar}" method="post" class="edit-row">
+                        <input type="hidden" name="id" th:value="${item.id}">
+                        <input type="hidden" name="tipoId" th:value="${entry.key.id}"> <!-- Mantém vínculo -->
+
+                        <!-- Nome -->
+                        <div>
+                            <input type="text" name="nome" th:value="${item.nome}" class="input-price" style="text-align: left;">
+                        </div>
+
+                        <!-- Tipo -->
+                        <input type="hidden" name="tipo" th:value="${item.tipo.id}">
+
+                        <!-- Preço -->
+                        <div>
+                            <input type="number" step="0.01" name="valor" th:value="${item.valor}" class="input-price" placeholder="0.00">
+                        </div>
+
+                        <!-- Toggle Ativado/Desativado -->
+                        <div style="display: flex; align-items: center;">
+                            <label class="switch">
+                                <input type="hidden" name="_ativado" value="on">
+                                <input type="checkbox" name="ativado" th:checked="${item.ativado}">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="margin-left: 10px; font-size: 0.8rem; color: #666;"
+                                  th:text="${item.ativado ? 'Sim' : 'Não'}">Sim</span>
+                        </div>
+
+                        <!-- Botão Salvar -->
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn btn-primary btn-sm" style="padding: 5px 10px;">
+                                <i class="fas fa-save"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Mensagem se não houver itens -->
+                <div th:if="${#lists.isEmpty(entry.value)}" style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+                    Nenhum item cadastrado nesta categoria.
+                </div>
+
             </div>
-        </div>
+        </div> <!-- Fim do Loop de Tipo -->
 
     </div>
 </section>

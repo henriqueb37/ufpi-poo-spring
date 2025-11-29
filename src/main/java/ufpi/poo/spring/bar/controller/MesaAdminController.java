@@ -15,6 +15,7 @@ import ufpi.poo.spring.bar.dto.MesaDto;
 import ufpi.poo.spring.bar.model.Cardapio;
 import ufpi.poo.spring.bar.model.Mesa;
 import ufpi.poo.spring.bar.service.BarService;
+import ufpi.poo.spring.bar.service.DadosService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,22 +27,16 @@ public class MesaAdminController {
 
     @Autowired private BarService barService;
     @Autowired private CardapioRepository cardapioRepository; // Necessário para buscar o preço do ingresso
+    @Autowired
+    private DadosService dadosService;
 
     // --- MÉTODOS DE VISUALIZAÇÃO E CRIAÇÃO ---
 
     // GET: Carrega a tela de gerenciamento com a lista de mesas
     @GetMapping
     public String gerenciarMesas(Model model) {
-
-        // 1. Busca o preço do ingresso (Item Tipo 1) para passar ao DTO
-        // Se não encontrar o item 1, assume preço 0.0
-        Cardapio ingresso = cardapioRepository.findFirstByTipoId(1);
-        final Double precoIngresso = (ingresso != null) ? ingresso.getValor() : 0.0;
-
-        // 2. Converte a lista de Entidades para DTOs
-        // CORREÇÃO CRÍTICA: Usamos lambda 'm -> ...' para passar os dois argumentos
         List<MesaDto> mesas = barService.listarTodasMesas().stream()
-                .map(m -> MesaDto.fromMesa(m, precoIngresso))
+                .map(m -> dadosService.getMesa(m))
                 .collect(Collectors.toList());
 
         model.addAttribute("mesas", mesas);

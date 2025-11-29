@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
@@ -39,6 +39,36 @@
     </main>
 </div>
 
+<!-- SISTEMA DE NOTIFICAÇÕES (TOASTS) -->
+<div class="toast-container">
+
+    <!-- Notificação de SUCESSO (Flash Attribute OU Parametro URL) -->
+    <!-- Prioriza 'sucesso' do model, senão usa msg padrão se ?sucesso existir na URL -->
+    <div th:if="${sucesso != null} or ${param.sucesso}" class="toast success" id="toast-success">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <div class="toast-body">
+            <span class="toast-title">Sucesso!</span>
+            <span class="toast-message"
+                  th:text="${sucesso != null ? sucesso : 'Operação realizada com sucesso.'}">
+                Descrição do sucesso.
+            </span>
+        </div>
+    </div>
+
+    <!-- Notificação de ERRO -->
+    <div th:if="${erro != null} or ${param.erro}" class="toast error" id="toast-error">
+        <i class="fas fa-times-circle toast-icon"></i>
+        <div class="toast-body">
+            <span class="toast-title">Erro</span>
+            <span class="toast-message"
+                  th:text="${erro != null ? erro : 'Ocorreu um erro na operação.'}">
+                Descrição do erro.
+            </span>
+        </div>
+    </div>
+
+</div>
+
 <footer class="footer">
     <div class="container">
         <p>2025.2 UFPI - Teresina</p>
@@ -55,6 +85,24 @@
         </div>
     </div>
 </footer>
+
+<!-- Script para Auto-Hide das Notificações -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const toasts = document.querySelectorAll('.toast');
+
+        if (toasts.length > 0) {
+            setTimeout(() => {
+                toasts.forEach(toast => {
+                    // Adiciona animação de saída
+                    toast.style.animation = 'fadeOut 0.5s forwards';
+                    // Remove do DOM após animação
+                    setTimeout(() => toast.remove(), 500);
+                });
+            }, 15000); // 4 segundos visível
+        }
+    });
+</script>
 
 </body>
 </html>

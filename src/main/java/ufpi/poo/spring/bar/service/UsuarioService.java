@@ -27,24 +27,21 @@ public class UsuarioService {
 
     // Salvar (Cadastrar ou Editar)
     public void salvarUsuario(Usuario usuario) {
-        // 1. Verifica se é um cadastro NOVO (ID nulo)
         if (usuario.getId() == null) {
             // Verifica duplicidade de email
             if (usuarioRepository.existsByEmail(usuario.getEmail())) {
                 throw new RuntimeException("Já existe um usuário com este e-mail.");
             }
-            // CRIPTOGRAFA A SENHA ANTES DE SALVAR
             String senhaCodificada = passwordEncoder.encode(usuario.getSenha());
             usuario.setSenha(senhaCodificada);
         } else {
-            // Se for EDIÇÃO, a lógica de senha é mais delicada.
-            // Por simplificação, se o campo senha vier vazio do form, não mudamos.
-            // Se vier preenchido, criptografamos a nova.
+            // Se o campo senha vier vazio do form, não muda
+            // Se vier preenchido, criptografa a nova
             Usuario antigo = buscarPorId(usuario.getId());
             if (usuario.getSenha() == null || usuario.getSenha().isEmpty()) {
-                usuario.setSenha(antigo.getSenha()); // Mantém a antiga
+                usuario.setSenha(antigo.getSenha());
             } else {
-                usuario.setSenha(passwordEncoder.encode(usuario.getSenha())); // Atualiza
+                usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
             }
         }
 

@@ -13,8 +13,11 @@ import ufpi.poo.spring.bar.dto.CardapioDto;
 import ufpi.poo.spring.bar.dto.MesaDto;
 import ufpi.poo.spring.bar.dto.TiposCardapioDto;
 import ufpi.poo.spring.bar.misc.MesaEstados;
+import ufpi.poo.spring.bar.model.Cardapio;
 import ufpi.poo.spring.bar.model.Mesa;
+import ufpi.poo.spring.bar.model.TiposCardapio;
 import ufpi.poo.spring.bar.service.BarService;
+import ufpi.poo.spring.bar.service.ConfiguracaoService;
 import ufpi.poo.spring.bar.service.DadosService;
 
 import java.time.Instant;
@@ -44,6 +47,8 @@ public class IndexController {
     // Injeção nova para buscar o valor do couvert
     @Autowired
     private ConfiguracaoRepository configuracaoRepository;
+    @Autowired
+    private ConfiguracaoService configuracaoService;
 
     @GetMapping("/")
     public String paginaInicial() {
@@ -77,7 +82,6 @@ public class IndexController {
         List<MesaDto> mesaDto = new ArrayList<>();
         for (var m : mesas) {
             if (m.getAtivado())
-                // Usa o serviço para converter (inclui lógica de preço de entrada)
                 mesaDto.add(dadosService.getMesa(m));
         }
         model.addAttribute("mesas", mesaDto);
@@ -117,36 +121,5 @@ public class IndexController {
         Instant amanha = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
         model.addAttribute("faturamentoDia", pagamentoRepository.calcularFaturamentoPorPeriodo(hoje, amanha));
         return "admin-dashboard";
-    }
-
-    @GetMapping("/admin/cardapio")
-    public String gerenciarCardapio(Model model) {
-        // 1. Busque todos os tipos
-        List<TiposCardapioDto> tipos = dadosService.getTiposCardapioAll();
-
-        // 2. Busque todos os itens
-        List<CardapioDto> itens = dadosService.getCardapioAll();
-
-        // 3. Agrupe-os em um Map para facilitar a visualização
-        Map<TiposCardapioDto, List<CardapioDto>> map = new LinkedHashMap<>();
-
-        for (TiposCardapioDto tipo : tipos) {
-            List<CardapioDto> itensDoTipo = itens.stream()
-                    .filter(i -> i.getTipoId().equals(tipo.getId()))
-                    .collect(Collectors.toList());
-
-            map.put(tipo, itensDoTipo);
-        }
-
-        // --- NOVO: Busca o valor do Couvert para preencher o input no HTML ---
-        Double valorEntrada = configuracaoRepository.findById(1)
-                .map(c -> c.getValorCouvert())
-                .orElse(0.0);
-        model.addAttribute("valorEntrada", valorEntrada);
-        // ---------------------------------------------------------------------
-
-        model.addAttribute("cardapioMap", map);
-
-        return "admin-cardapio";
     }
 }

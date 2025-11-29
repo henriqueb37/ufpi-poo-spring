@@ -3,33 +3,30 @@ package ufpi.poo.spring.bar.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ufpi.poo.spring.bar.dao.CardapioRepository;
+import ufpi.poo.spring.bar.dao.ConfiguracaoRepository;
 import ufpi.poo.spring.bar.dao.MesaRepository;
 import ufpi.poo.spring.bar.dao.TiposCardapioRepository;
 import ufpi.poo.spring.bar.dto.CardapioDto;
 import ufpi.poo.spring.bar.dto.MesaDto;
 import ufpi.poo.spring.bar.dto.TiposCardapioDto;
+import ufpi.poo.spring.bar.misc.TotaisMesa;
 import ufpi.poo.spring.bar.model.Cardapio;
 import ufpi.poo.spring.bar.model.Mesa;
 import ufpi.poo.spring.bar.model.TiposCardapio;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class DadosService {
 
     @Autowired
     private CardapioRepository cardapioDao;
-
     @Autowired
     private MesaRepository mesaRepository;
-
     @Autowired
     private TiposCardapioRepository tiposCardapioRepository;
-
     @Autowired
-    private ufpi.poo.spring.bar.dao.ConfiguracaoRepository configuracaoRepository;
+    private ConfiguracaoService configuracaoService;
 
     public List<CardapioDto> getCardapio() {
         Iterable<Cardapio> cardapio = cardapioDao.findAll();
@@ -41,51 +38,100 @@ public class DadosService {
         return cardapioDto;
     }
 
+    public TotaisMesa calcularTotaisMesa(Mesa mesa) {
+        Double precoIngresso = configuracaoService.getConfiguracaoAtual().getValorCouvert();
+
+        if (mesa == null) return null;
+
+        Set<MesaDto.PagamentoDto> pagamentosDto = new HashSet<>();
+        double totalPagoCalculado = 0.0;
+        if (mesa.getPagamentos() != null) {
+            for (var p : mesa.getPagamentos()) {
+                if (mesa.getHoraAberta() != null && p.getHora().isAfter(mesa.getHoraAberta())) {
+                    pagamentosDto.add(new MesaDto.PagamentoDto(p.getId(), p.getValor(), p.getHora()));
+                    totalPagoCalculado += p.getValor();
+                }
+            }
+        }
+
+        Set<MesaDto.PedidoDto> pedidosDto = new HashSet<>();
+        double subtotalCalculado = 0.0;
+        double gorjetaCalculada = 0.0;
+
+        if (mesa.getPedidos() != null) {
+            for (var p : mesa.getPedidos()) {
+                if (mesa.getHoraAberta() != null && p.getHora().isAfter(mesa.getHoraAberta()) && p.getCancelamento() == null) {
+                    Double valorEfetivo = (p.getValorFechado() != null) ? p.getValorFechado() : p.getItem().getValor();
+                    Double percGorjeta = (p.getItem().getTipo().getPercGorjeta() != null) ? p.getItem().getTipo().getPercGorjeta() : 0.0;
+
+                    double valorItemTotal = valorEfetivo * p.getQuant();
+                    subtotalCalculado += valorItemTotal;
+                    gorjetaCalculada += valorItemTotal * (percGorjeta / 100.0);
+
+                    pedidosDto.add(new MesaDto.PedidoDto(
+                            p.getId(), p.getItem().getId(), p.getItem().getNome(), valorEfetivo,
+                            p.getItem().getTipo().getId(), p.getItem().getTipo().getNome(), percGorjeta,
+                            p.getQuant(), p.getHora()
+                    ));
+                }
+            }
+        }
+
+        double entradaCalculada = 0.0;
+        if (mesa.getPagaEntrada() != null && mesa.getPagaEntrada()) {
+            double valorUnitario = (precoIngresso != null) ? precoIngresso : 0.0;
+            entradaCalculada = valorUnitario * (mesa.getNPessoas() != null ? mesa.getNPessoas() : 1);
+        }
+
+        double totalCalculado = subtotalCalculado + gorjetaCalculada + entradaCalculada - totalPagoCalculado;
+
+        return new TotaisMesa(
+                subtotalCalculado,
+                gorjetaCalculada,
+                entradaCalculada,
+                totalPagoCalculado,
+                totalCalculado,
+                pagamentosDto,
+                pedidosDto
+        );
+    }
+
     /**
      * Método principal para converter Mesa -> MesaDto.
      * Agora busca o preço do ingresso no banco para passar ao DTO.
      */
     public MesaDto getMesa(Mesa mesa) {
         // Busca o preço da Configuração, não do Item
-        Double precoIngresso = configuracaoRepository.findById(1)
-                .map(c -> c.getValorCouvert())
-                .orElse(0.0);
+        TotaisMesa totais = calcularTotaisMesa(mesa);
 
-        return MesaDto.fromMesa(mesa, precoIngresso);
+        return new MesaDto(
+                mesa.getId(),
+                mesa.getAtivado(),
+                mesa.getEstado(),
+                mesa.getPagaEntrada(),
+                mesa.getNPessoas(),
+                mesa.getCapacidade(),
+                mesa.getHoraAberta(),
+                totais.pagamentosDtos(),
+                totais.pedidosDtos(),
+                totais.subtotal(),
+                totais.gorjeta(),
+                totais.entrada(),
+                totais.totalPago(),
+                totais.total()
+        );
     }
 
     public Optional<MesaDto> getMesa(Integer id) {
         Optional<Mesa> mesaOpt = mesaRepository.findById(id);
-        if (mesaOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        // Reusa o método acima para garantir consistência
-        return Optional.of(getMesa(mesaOpt.get()));
+        return mesaOpt.map(this::getMesa);
     }
 
-    public List<CardapioDto> getCardapioAll() {
-        List<Cardapio> cardapioList = cardapioDao.findAll();
-        List<CardapioDto> cardapioDtos = new ArrayList<>();
-        for (var item : cardapioList) {
-            cardapioDtos.add(new CardapioDto(
-                    item.getId(),
-                    item.getAtivado(),
-                    item.getNome(),
-                    item.getValor(),
-                    item.getTipo().getId(),
-                    item.getTipo().getNome(),
-                    item.getTipo().getPercGorjeta()
-            ));
-        }
-        return cardapioDtos;
+    public List<Cardapio> getCardapioAll() {
+        return cardapioDao.findAll();
     }
 
-    public List<TiposCardapioDto> getTiposCardapioAll() {
-        List<TiposCardapio> tiposCardapios = tiposCardapioRepository.findAll();
-        List<TiposCardapioDto> tiposCardapioDtos = new ArrayList<>();
-        for (var tc : tiposCardapios) {
-            tiposCardapioDtos.add(new TiposCardapioDto(tc.getId(), tc.getNome(), tc.getPercGorjeta(), tc.getAtivado()));
-        }
-        return tiposCardapioDtos;
+    public List<TiposCardapio> getTiposCardapioAll() {
+        return tiposCardapioRepository.findAll();
     }
 }

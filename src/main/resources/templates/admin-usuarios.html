@@ -2,100 +2,140 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{base :: layout (~{::title}, ~{::section})}">
 <head>
-    <title>Gerenciar Equipe</title>
+    <title>Gerenciar Equipe - Pedrão's Bar</title>
 </head>
 <body>
 
 <section class="section">
     <div class="container">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title">Gerenciar Equipe</h2>
-            <a href="/admin/dashboard" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar
+        <!-- Navegação -->
+        <div style="margin-bottom: 30px;">
+            <a href="/admin/dashboard" class="link-back">
+                <i class="fas fa-arrow-left"></i> Voltar ao Painel
             </a>
         </div>
 
-        <div th:if="${sucesso}" class="alert alert-success">
-            <i class="fas fa-check-circle"></i> <span th:text="${sucesso}"></span>
+        <h2 class="section-title">Gerenciar Equipe</h2>
+
+        <!-- 1. FORMULÁRIO DE CADASTRO -->
+        <div class="config-section">
+            <h3 class="config-header">
+                <i class="fas fa-user-plus" style="margin-right: 10px; color: var(--accent);"></i>
+                Cadastrar Funcionário
+            </h3>
+
+            <form th:action="@{/admin/usuarios/salvar}" th:object="${novoUsuario}" method="post">
+
+                <div class="form-grid">
+                    <!-- Nome -->
+                    <div class="input-group">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" th:field="*{nomeCompleto}"
+                               class="input-price" placeholder="Ex: João da Silva" required>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="input-group">
+                        <label for="email">Email (Login)</label>
+                        <input type="email" id="email" th:field="*{email}"
+                               class="input-price" placeholder="joao@bar.com" required>
+                    </div>
+
+                    <!-- Senha -->
+                    <div class="input-group">
+                        <label for="senha">Senha</label>
+                        <input type="password" id="senha" th:field="*{senha}"
+                               class="input-price" placeholder="******" required>
+                    </div>
+
+                    <!-- Cargo (Select Customizado) -->
+                    <div class="input-group">
+                        <label for="cargo">Cargo</label>
+                        <div class="select-wrapper">
+                            <select id="cargo" th:field="*{cargo}" class="input-price" required>
+                                <option th:each="c : ${cargos}"
+                                        th:value="${c}"
+                                        th:text="${c}">GARCOM</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão Salvar (Full width no final) -->
+                <div style="margin-top: 20px; text-align: right;">
+                    <button type="submit" class="btn btn-primary" style="min-width: 200px;">
+                        <i class="fas fa-save"></i> Cadastrar
+                    </button>
+                </div>
+
+            </form>
         </div>
-        <div th:if="${erro}" class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i> <span th:text="${erro}"></span>
-        </div>
 
-        <div class="card shadow-sm mb-5" style="border: 1px solid #333;">
-            <div class="card-header bg-dark text-white">
-                <h4 class="mb-0"><i class="fas fa-user-plus"></i> Cadastrar Funcionário</h4>
-            </div>
-            <div class="card-body">
-                <form th:action="@{/admin/usuarios/salvar}" th:object="${novoUsuario}" method="post" class="row g-3">
+        <!-- 2. LISTA DE FUNCIONÁRIOS (Grid Layout) -->
+        <div style="margin-top: 40px;">
+            <h3 class="config-header" style="border: none; margin-bottom: 10px;">Funcionários Ativos</h3>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Nome Completo</label>
-                        <input type="text" class="form-control" th:field="*{nomeCompleto}" required placeholder="Ex: João da Silva">
-                    </div>
+            <div class="items-table-container">
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Email (Login)</label>
-                        <input type="email" class="form-control" th:field="*{email}" required placeholder="joao@bar.com">
-                    </div>
+                <!-- Cabeçalho da Tabela -->
+                <!-- Grid: Nome (2fr), Email (2fr), Cargo (1fr), Ações (0.5fr) -->
+                <div class="items-header-row" style="grid-template-columns: 2fr 2fr 1fr 0.5fr;">
+                    <div>Nome</div>
+                    <div>Email</div>
+                    <div class="text-center">Cargo</div>
+                    <div style="text-align: right;">Ações</div>
+                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Senha</label>
-                        <input type="password" class="form-control" th:field="*{senha}" required placeholder="******">
-                    </div>
+                <!-- Loop Usuários -->
+                <div th:each="user : ${usuarios}">
+                    <div class="edit-row" style="grid-template-columns: 2fr 2fr 1fr 0.5fr;">
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Cargo</label>
-                        <select class="form-select" th:field="*{cargo}">
-                            <option th:each="cargo : ${cargos}"
-                                    th:value="${cargo}"
-                                    th:text="${cargo}">GARCOM</option>
-                        </select>
-                    </div>
+                        <!-- Nome -->
+                        <div style="font-weight: 600; color: var(--text-main);" th:text="${user.nomeCompleto}">
+                            João Silva
+                        </div>
 
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--accent); border: none; color: black; font-weight: bold;">
-                            CADASTRAR
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                        <!-- Email -->
+                        <div class="text-muted" style="font-size: 0.9rem;" th:text="${user.email}">
+                            joao@bar.com
+                        </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Funcionários Ativos</h5>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Cargo</th>
-                        <th>Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="user : ${usuarios}">
-                        <td th:text="${user.nomeCompleto}">João</td>
-                        <td th:text="${user.email}">joao@bar.com</td>
-                        <td>
-                            <span th:if="${user.cargo.name() == 'ADMIN'}" class="badge bg-danger">ADMIN</span>
-                            <span th:if="${user.cargo.name() == 'GARCOM'}" class="badge bg-info text-dark">GARÇOM</span>
-                        </td>
-                        <td>
+                        <!-- Cargo (Badge Style) -->
+                        <div class="text-center">
+                            <!-- Badge Vermelho para Admin -->
+                            <span th:if="${user.cargo.name() == 'ADMIN'}"
+                                  style="background: rgba(239, 68, 68, 0.1); color: var(--color-danger); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                                ADMIN
+                            </span>
+
+                            <!-- Badge Azul/Cinza para Garçom -->
+                            <span th:if="${user.cargo.name() == 'GARCOM'}"
+                                  style="background: rgba(59, 130, 246, 0.1); color: var(--color-info); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                                GARÇOM
+                            </span>
+                        </div>
+
+                        <!-- Ações -->
+                        <div style="text-align: right;">
                             <form th:action="@{/admin/usuarios/excluir/{id}(id=${user.id})}" method="post"
-                                  onsubmit="return confirm('Tem certeza que deseja remover este funcionário?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                  onsubmit="return confirm('Tem certeza que deseja remover este funcionário?');"
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Remover">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Estado Vazio -->
+                <div th:if="${#lists.isEmpty(usuarios)}" style="text-align: center; padding: 30px;" class="text-dim">
+                    Nenhum funcionário encontrado além de você.
+                </div>
+
             </div>
         </div>
 

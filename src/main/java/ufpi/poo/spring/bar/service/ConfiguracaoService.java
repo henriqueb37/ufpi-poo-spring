@@ -12,16 +12,17 @@ public class ConfiguracaoService {
     @Autowired
     private ConfiguracaoRepository repository;
 
+    private double defaultCovert = 10;
+
     /**
      * Garante que a linha de configuração exista no banco.
      * Se não existir, cria com valores padrão.
      */
     private ConfiguracaoGeral getOrCreateConfig() {
-        // Tentamos buscar a linha com ID 1
         return repository.findById(1)
                 .orElseGet(() -> {
-                    // Se não encontrar, cria uma nova e salva
                     ConfiguracaoGeral novaConfig = new ConfiguracaoGeral();
+                    novaConfig.setValorCouvert(defaultCovert);
                     return repository.save(novaConfig);
                 });
     }
@@ -43,20 +44,6 @@ public class ConfiguracaoService {
         }
         ConfiguracaoGeral config = getOrCreateConfig();
         config.setValorCouvert(valor);
-        repository.save(config);
-    }
-
-    /**
-     * Atualiza as taxas de gorjeta.
-     */
-    @Transactional
-    public void atualizarTaxasGorjeta(Double percComida, Double percBebida) {
-        if (percComida == null || percBebida == null || percComida < 0 || percBebida < 0) {
-            throw new IllegalArgumentException("Percentuais de gorjeta inválidos.");
-        }
-        ConfiguracaoGeral config = getOrCreateConfig();
-        config.setPercGorjetaComida(percComida);
-        config.setPercGorjetaBebida(percBebida);
         repository.save(config);
     }
 }

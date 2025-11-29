@@ -22,6 +22,10 @@ public class BarService {
     @Autowired private PedidoRepository pedidoRepository;
     @Autowired private CardapioRepository cardapioRepository;
     @Autowired private PagamentoRepository pagamentoRepository;
+    @Autowired
+    private ConfiguracaoService configuracaoService;
+    @Autowired
+    private DadosService dadosService;
 
     // --- MÉTODOS DE LEITURA (Para as Telas) ---
 
@@ -43,17 +47,16 @@ public class BarService {
     public void abrirMesa(Integer idMesa) {
         Mesa mesa = buscarMesaPorId(idMesa);
 
-        // Regra: Só pode abrir se estiver LIVRE (vamos assumir 0=Livre, 1=Ocupada)
-        if (mesa.getEstado() == 1) {
+        // Regra: Só pode abrir se estiver LIVRE
+        if (mesa.getEstado() == MesaEstados.OCUPADA.getLabel()) {
             throw new RuntimeException("Mesa " + idMesa + " já está ocupada!");
         }
 
-        mesa.setEstado(1); // Marca como Ocupada
+        mesa.setEstado(MesaEstados.OCUPADA.getLabel()); // Marca como Ocupada
         mesa.setHoraAberta(Instant.now());
         mesa.setAtivado(true);
         mesa.setPagaEntrada(false);
         mesa.setNPessoas(1);
-        // Limpa pagamentos/pedidos antigos se necessário, ou assume que o banco está limpo
 
         mesaRepository.save(mesa);
     }
@@ -81,6 +84,7 @@ public class BarService {
         novoPedido.setHora(Instant.now());
         pedidoRepository.save(novoPedido);
     }
+
     /**
      * Cancela um item (Auditoria).
      * Em vez de deletar, salvamos o motivo no campo 'cancelamento'.
@@ -110,9 +114,7 @@ public class BarService {
         }
 
         // Regra: Não pode pagar mais do que deve
-        double totalConta = calcularTotalGeral(idMesa);
-        double totalJaPago = pagamentoRepository.calcularTotalPagoMesa(idMesa);
-        double saldoDevedor = totalConta - totalJaPago;
+        double saldoDevedor = dadosService.calcularTotaisMesa(mesa).total();
 
         // Pequena margem de erro para double (0.01)
         if (valor > (saldoDevedor + 0.01)) {
@@ -128,7 +130,6 @@ public class BarService {
     }
 
     /**
-     * MUDANÇA DE LÓGICA: Fechar Mesa (Encerrar Consumo).
      * Transição: 1 (Ocupada) -> 2 (Em Pagamento).
      * Não exige pagamento total agora. Apenas bloqueia novos pedidos.
      */
@@ -148,7 +149,6 @@ public class BarService {
 
 
     /**
-     * NOVO MÉTODO: Liberar Mesa (Finalizar Atendimento).
      * Transição: 2 (Em Pagamento) -> 0 (Livre).
      * Regra: Só libera se o saldo for ZERO.
      */
@@ -162,19 +162,13 @@ public class BarService {
         }
 
         // Validação Financeira (A regra rígida moveu-se para cá)
-        double totalConta = calcularTotalGeral(idMesa);
-        double totalPago = pagamentoRepository.calcularTotalPagoMesa(idMesa);
-        double saldoPend = totalConta - totalPago;
+        double saldoPend = dadosService.calcularTotaisMesa(mesa).total();
 
         if (saldoPend > 0.009) {
             throw new RuntimeException("Mesa não pode ser liberada. Saldo pendente: R$ " + String.format("%.2f", saldoPend));
         }
 
-        // Tudo pago! Libera a mesa para o próximo cliente.
         mesa.setEstado(MesaEstados.LIVRE.getLabel());
-
-        // Opcional: Aqui você pode "arquivar" os pedidos/pagamentos se quiser limpar a mesa visualmente
-        // Mas como seu banco guarda histórico, apenas mudar o estado já basta.
 
         mesaRepository.save(mesa);
     }
@@ -213,11 +207,7 @@ public class BarService {
         // --- NOVO CÁLCULO: VALOR DA ENTRADA (COUVERT) ---
 
         if (mesa.getPagaEntrada()) {
-            // Busca o valor na tabela de configurações (ID fixo 1)
-            // Se não existir configuração, assume 0.0
-            Double valorCouvert = configuracaoRepository.findById(1)
-                    .map(config -> config.getValorCouvert())
-                    .orElse(0.0);
+            Double valorCouvert = configuracaoService.getConfiguracaoAtual().getValorCouvert();
 
             totalItens += valorCouvert * mesa.getNPessoas();
         }

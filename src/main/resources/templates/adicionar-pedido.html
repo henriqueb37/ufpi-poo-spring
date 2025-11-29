@@ -77,3 +77,56 @@
                         if (nome.includes(termo) || tipo.includes(termo)) {
                             card.style.display = "flex";
                             visiveis++;
+                        } else {
+                            card.style.display = "none";
+                        }
+                    });
+
+                    document.getElementById('no-results').style.display = visiveis === 0 ? 'block' : 'none';
+                }
+
+                // Recebe o evento do HTMX para verificar o status
+                function feedbackVisual(formElement, event) {
+                    // event.detail.successful é true se o status for 2xx (ex: 200 OK)
+                    if (event && event.detail && event.detail.successful) {
+                        const btn = formElement.querySelector('button');
+                        const iconeOriginal = btn.innerHTML;
+
+                        btn.classList.add('btn-added');
+                        btn.innerHTML = '<i class="fas fa-check"></i> Feito';
+
+                        // Reseta o input de quantidade
+                        const inputQtd = formElement.querySelector('input[name="quantidade"]');
+                        if(inputQtd) inputQtd.value = 1;
+
+                        setTimeout(() => {
+                            btn.classList.remove('btn-added');
+                            btn.innerHTML = iconeOriginal;
+                        }, 1500);
+                    } else {
+                        // Opcional: Feedback de erro
+                        console.error("Erro ao adicionar item", event.detail);
+                        // Você poderia piscar o botão em vermelho aqui se quisesse
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- BLOCO DE ERRO (Se a mesa NÃO estiver aberta) -->
+        <div th:unless="${mesa.estado == 1}" style="text-align: center; padding: 50px 0;">
+            <div style="font-size: 3rem; color: #444; margin-bottom: 20px;">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 style="color: var(--accent);">Operação Não Permitida</h2>
+            <p style="color: #ccc; margin-bottom: 30px;">
+                Esta mesa não está com o status <strong>ABERTA</strong>.<br>
+                Não é possível adicionar novos itens.
+            </p>
+            <a th:href="@{/mesas/{id}(id=${mesa.id})}" class="btn btn-primary">Voltar aos Detalhes</a>
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

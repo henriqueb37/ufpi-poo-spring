@@ -9,24 +9,18 @@
 
 <section class="section">
     <div class="container">
+        <!-- Botão de Voltar -->
         <div style="margin-bottom: 20px;">
-            <a href="/mesas" style="color: #a0a0a0; text-decoration: none;">
+            <a href="/mesas" class="link-back">
                 <i class="fas fa-arrow-left"></i> Voltar para Mapa
             </a>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 class="section-title" style="margin-bottom: 0;">Mesa <span th:text="${mesa.id}">01</span></h2>
-
-            <div>
-                <span th:if="${mesa.estado == 0}" class="badge bg-success">LIVRE</span>
-                <span th:if="${mesa.estado == 1}" class="badge bg-danger">OCUPADA</span>
-                <span th:if="${mesa.estado == 2}" class="badge bg-warning text-dark">EM PAGAMENTO</span>
-            </div>
-        </div>
+        <h2 class="section-title">Mesa <span th:text="${mesa.id}">01</span></h2>
 
         <div class="comanda-container">
 
+            <!-- COLUNA ESQUERDA: A CONTA -->
             <div class="comanda-box"
                  id="painel-consumo"
                  th:attr="hx-get=@{/mesas/{id}(id=${mesa.id})}"
@@ -35,10 +29,10 @@
                  hx-swap="outerHTML">
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="color: var(--accent); margin-bottom: 0;">Consumo</h3>
-                    <span class="htmx-indicator" style="color: #666; font-size: 0.8rem;">
-                        <i class="fas fa-sync fa-spin"></i> Atualizando...
-                    </span>
+                    <h3 class="text-accent" style="margin-bottom: 0;">Consumo</h3>
+                    <span class="htmx-indicator text-dim" style="font-size: 0.8rem;">
+                            <i class="fas fa-sync fa-spin"></i>
+                        </span>
                 </div>
 
                 <table class="table-items">
@@ -55,15 +49,14 @@
                     <tr th:each="pedido : ${mesa.pedidos}">
                         <td>
                             <div th:text="${pedido.itemNome}">Nome do Item</div>
-                            <small style="color: #888;" th:text="${pedido.itemTipoNome}">Tipo</small>
+                            <small class="text-dim" th:text="${pedido.itemTipoNome}">Tipo</small>
                         </td>
                         <td th:text="${pedido.quant}">1</td>
-                        <td th:text="${'R$ ' + #numbers.formatDecimal(pedido.itemValor ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-                        <td th:text="${'R$ ' + #numbers.formatDecimal((pedido.itemValor ?: 0) * pedido.quant, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(pedido.itemValor, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(pedido.itemValor * pedido.quant, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
 
                         <td class="actions" sec:authorize="hasRole('GARCOM')">
-                            <button class="btn btn-sm btn-outline-danger"
-                                    style="border: none;"
+                            <button class="btn btn-outline btn-sm"
                                     onclick="abrirModalCancelamento(this)"
                                     th:data-id="${pedido.id}"
                                     title="Cancelar Item">
@@ -73,9 +66,7 @@
                     </tr>
 
                     <tr th:if="${#lists.isEmpty(mesa.pedidos)}">
-                        <td colspan="5" style="text-align: center; color: #666; font-style: italic; padding: 20px;">
-                            Nenhum pedido realizado.
-                        </td>
+                        <td colspan="5" class="text-center text-muted" style="font-style: italic;">Nenhum pedido realizado.</td>
                     </tr>
                     </tbody>
                 </table>
@@ -83,101 +74,95 @@
                 <div class="financial-summary">
                     <div class="summary-row">
                         <span>Subtotal</span>
-                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.subtotal ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.subtotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
                     <div class="summary-row">
                         <span>Serviço (Gorjeta)</span>
-                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.gorjeta ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.gorjeta, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
                     <div class="summary-row">
-                        <span>Entrada
-                            <small style="color: #888;">(<span th:text="${mesa.nPessoas ?: 0}">1</span> pessoas)</small>
-                            <small th:if="${mesa.pagaEntrada == null or !mesa.pagaEntrada}" style="color: #e74c3c;">(Isento)</small>
-                        </span>
-                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.entrada ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                            <span>Entrada
+                                <small class="text-placeholder">(<span th:text="${mesa.nPessoas}">1</span> pessoas)</small>
+                                <small th:if="${!mesa.pagaEntrada}">(Isento)</small>
+                            </span>
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.entrada, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
-                    <div class="summary-row" th:if="${mesa.totalPago != null and mesa.totalPago > 0}">
-                        <span style="color: #27ae60;">Já Pago</span>
-                        <span style="color: #27ae60;" th:text="${'- R$ ' + #numbers.formatDecimal(mesa.totalPago ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                    <div class="summary-row" th:if="${mesa.totalPago > 0}">
+                        <span class="text-success">Já Pago</span>
+                        <span class="text-success" th:text="${'- R$ ' + #numbers.formatDecimal(mesa.totalPago, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
 
-                    <div class="summary-row total" style="border-top: 1px solid #444; margin-top: 10px; padding-top: 10px; font-size: 1.2rem; color: var(--accent);">
-                        <span>TOTAL A PAGAR</span>
-                        <span th:text="${'R$ ' + #numbers.formatDecimal((mesa.total ?: 0) - (mesa.totalPago ?: 0), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                    <div class="summary-row total">
+                        <span>TOTAL</span>
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.total - mesa.totalPago, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
                 </div>
             </div>
 
-            <div class="actions-panel" sec:authorize="hasAnyRole('GARCOM', 'ADMIN')">
+            <!-- COLUNA DIREITA: AÇÕES -->
+            <div class="actions-panel" sec:authorize="hasRole('GARCOM')">
                 <div class="comanda-box">
                     <h3>Operações</h3>
 
                     <div class="action-btn-group">
-
+                        <!-- Atualização de Pessoas -->
                         <form th:action="@{/mesas/{id}/pessoas(id=${mesa.id})}" method="post" style="margin-bottom: 15px;">
-                            <label style="font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 5px;">Pessoas na Mesa:</label>
+                            <label class="text-dim" style="font-size: 0.8rem; margin-bottom: 5px; display: block;">Nº de Pessoas:</label>
                             <div style="display: flex; gap: 5px;">
-                                <input type="number" name="nPessoas" th:value="${mesa.nPessoas ?: 1}" min="1"
-                                       class="form-control form-control-sm" style="background: #222; border: 1px solid #444; color: white;">
-                                <button type="submit" class="btn btn-sm btn-outline-light">
-                                    <i class="fas fa-sync"></i>
+                                <input type="number" name="nPessoas" th:value="${mesa.nPessoas}" min="1"
+                                       class="qtd-input" style="flex: 1;">
+                                <button type="submit" class="btn btn-outline btn-sm">
+                                    <i class="fas fa-users"></i> Atualizar
                                 </button>
                             </div>
                         </form>
 
-                        <hr style="border-color: #333; margin: 15px 0;">
+                        <hr style="border-color: var(--border-color); margin: 5px 0 15px 0;">
 
-                        <div th:if="${mesa.estado == 1}">
-                            <a th:href="@{/mesas/{id}/adicionar(id=${mesa.id})}" class="btn btn-primary w-100 mb-2">
-                                <i class="fas fa-plus"></i> Adicionar Item
-                            </a>
+                        <a th:href="@{/mesas/{id}/adicionar(id=${mesa.id})}"
+                           class="btn btn-primary btn-block"
+                           th:if="${mesa.estado == 1}">
+                            <i class="fas fa-plus"></i> Adicionar Item
+                        </a>
+
+                        <div th:unless="${mesa.estado == 1}"
+                             class="text-dim text-center"
+                             style="padding: 10px; border: 1px dashed var(--border-light); font-size: 0.85rem; border-radius: 6px;">
+                            <i class="fas fa-ban"></i> Mesa fechada para pedidos.
                         </div>
 
-                        <div th:if="${mesa.estado == 0}">
-                            <form th:action="@{/mesas/{id}/abrir(id=${mesa.id})}" method="post">
-                                <button type="submit" class="btn btn-success w-100 mb-2">
-                                    <i class="fas fa-door-open"></i> Abrir Mesa
-                                </button>
-                            </form>
-                        </div>
-
-                        <form th:action="@{/mesas/{id}/toggle-entrada(id=${mesa.id})}" method="post" style="margin-bottom: 10px;">
-                            <button type="submit" class="btn btn-outline-secondary w-100">
+                        <form th:action="@{/mesas/{id}/toggle-entrada(id=${mesa.id})}" method="post">
+                            <button type="submit" class="btn btn-outline btn-block">
                                 <i class="fas fa-ticket-alt"></i>
-                                <span th:text="${mesa.pagaEntrada != null and mesa.pagaEntrada ? 'Isentar Entrada' : 'Cobrar Entrada'}">Entrada</span>
+                                <span th:text="${mesa.pagaEntrada ? 'Isentar Entradas' : 'Cobrar Entradas'}">Entrada</span>
                             </button>
                         </form>
 
-                        <hr style="border-color: #333; margin: 15px 0;">
+                        <hr style="border-color: var(--border-color); margin: 15px 0;">
 
-                        <a th:if="${mesa.estado == 1 or mesa.estado == 2}"
-                           th:href="@{/mesas/{id}/pagamento(id=${mesa.id})}"
-                           class="btn btn-success w-100 mb-2" style="background-color: #27ae60; border: none;">
+                        <a th:href="@{/mesas/{id}/pagamento(id=${mesa.id})}" class="btn btn-success-outline btn-block">
                             <i class="fas fa-dollar-sign"></i> Registrar Pagamento
                         </a>
 
                         <form th:if="${mesa.estado == 1}"
                               th:action="@{/mesas/{id}/fechar(id=${mesa.id})}"
                               method="post"
-                              onsubmit="return confirm('Fechar a conta? Isso bloqueará novos pedidos.');">
-                            <button type="submit" class="btn btn-warning w-100" style="color: #000; font-weight: bold;">
-                                <i class="fas fa-file-invoice-dollar"></i> Fechar Conta
+                              onsubmit="return confirm('Confirma o fechamento da mesa?');">
+                            <button type="submit" class="btn btn-danger btn-block">
+                                <i class="fas fa-lock"></i> Fechar Mesa
                             </button>
                         </form>
-
-                        <form th:if="${mesa.estado == 2}"
-                              th:action="@{/mesas/{id}/liberar(id=${mesa.id})}"
-                              method="post"
-                              onsubmit="return confirm('Tem certeza? A mesa ficará LIVRE para novos clientes.');">
-                            <button type="submit" class="btn btn-danger w-100">
-                                <i class="fas fa-check-double"></i> Liberar Mesa
-                            </button>
-                        </form>
-
                     </div>
+
+                    <!-- QR Code da Mesa -->
+                    <div class="qr-section">
+                        <img id="qr-code-img" src="" alt="QR Code da Mesa" class="qr-image">
+                        <div class="qr-label">Acesso Rápido</div>
+                    </div>
+
                 </div>
             </div>
 
@@ -186,11 +171,21 @@
         <script>
             function abrirModalCancelamento(btn) {
                 const idItem = btn.getAttribute('data-id');
-                const motivo = prompt("Motivo do cancelamento (Obrigatório):");
+                const motivo = prompt("Motivo do cancelamento:");
                 if (motivo) {
                     window.location.href = `/pedidos/${idItem}/cancelar?motivo=${encodeURIComponent(motivo)}`;
                 }
             }
+
+            // Gerador de QR Code Automático
+            document.addEventListener("DOMContentLoaded", function() {
+                const qrImg = document.getElementById('qr-code-img');
+                if(qrImg) {
+                    const currentUrl = window.location.href;
+                    // Usa API pública para gerar QR Code
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentUrl)}&color=2C3E50`;
+                }
+            });
         </script>
     </div>
 </section>

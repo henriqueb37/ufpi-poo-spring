@@ -1,5 +1,6 @@
 package ufpi.poo.spring.bar.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -13,7 +14,9 @@ import ufpi.poo.spring.bar.dto.MesaDto;
 import ufpi.poo.spring.bar.model.Cardapio; // Adicione este import
 import ufpi.poo.spring.bar.model.Mesa;
 import ufpi.poo.spring.bar.service.BarService;
+import ufpi.poo.spring.bar.service.DadosService;
 
+@Slf4j
 @Controller
 @RequestMapping("/mesas")
 public class MesaController {
@@ -24,10 +27,9 @@ public class MesaController {
 
     // CORREÇÃO DO TYPO (era cardapioRepositor)
     @Autowired private CardapioRepository cardapioRepository;
+    @Autowired private DadosService dadosService;
 
-    // --- AÇÕES OPERACIONAIS (POST) ---
-
-    // 1. Abrir Mesa
+    // Abrir Mesa
     @PostMapping("/{id}/abrir")
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String abrirMesa(@PathVariable Integer id, RedirectAttributes ra) {
@@ -36,11 +38,12 @@ public class MesaController {
             ra.addFlashAttribute("sucesso", "Mesa aberta com sucesso!");
         } catch (Exception e) {
             ra.addFlashAttribute("erro", e.getMessage());
+            log.warn(e.getMessage());
         }
         return "redirect:/mesas/" + id;
     }
 
-    // 2. Adicionar Item (Ação do Formulário)
+    // Adicionar Item (Ação do Formulário)
     @PostMapping("/{id}/adicionar")
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String adicionarPedido(@PathVariable Integer id,
@@ -56,7 +59,7 @@ public class MesaController {
         return "redirect:/mesas/" + id;
     }
 
-    // 3. Fechar Conta (Muda estado para 2)
+    // Fechar Conta (Muda estado para 2)
     @PostMapping("/{id}/fechar")
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String fecharMesa(@PathVariable Integer id, RedirectAttributes ra) {
@@ -69,7 +72,7 @@ public class MesaController {
         return "redirect:/mesas/" + id;
     }
 
-    // 4. Liberar Mesa (Muda estado para 0 - Se pago)
+    // Liberar Mesa (Muda estado para 0 - Se pago)
     @PostMapping("/{id}/liberar")
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String liberarMesa(@PathVariable Integer id, RedirectAttributes ra) {
@@ -82,7 +85,7 @@ public class MesaController {
         return "redirect:/mesas/" + id;
     }
 
-    // 5. Toggle Entrada (Cobrar/Isentar)
+    // Toggle Entrada (Cobrar/Isentar)
     @PostMapping("/{id}/toggle-entrada")
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String toggleEntrada(@PathVariable Integer id, RedirectAttributes ra) {
@@ -103,14 +106,7 @@ public class MesaController {
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String formPagamento(@PathVariable Integer id, Model model) {
         Mesa mesa = barService.buscarMesaPorId(id);
-
-        // 1. Busca o preço do ingresso (Tipo ID = 1)
-        Cardapio ingresso = cardapioRepository.findFirstByTipoId(1);
-        Double precoIngresso = (ingresso != null) ? ingresso.getValor() : 0.0;
-
-        // 2. Passa a mesa E o preço do ingresso para o DTO
-        model.addAttribute("mesa", MesaDto.fromMesa(mesa, precoIngresso));
-
+        model.addAttribute("mesa", dadosService.getMesa(mesa));
         return "pagamento-form";
     }
 
