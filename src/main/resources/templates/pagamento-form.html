@@ -9,49 +9,56 @@
 <section class="section">
     <div class="container" style="max-width: 500px;">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title">
-                <i class="fas fa-cash-register"></i> Pagamento
+        <!-- Cabeçalho com Botão Voltar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2 class="section-title" style="margin-bottom: 0; font-size: 1.8rem; text-align: left;">
+                <i class="fas fa-cash-register text-accent"></i> Pagamento
             </h2>
-            <a th:href="@{/mesas/{id}(id=${mesa.id})}" class="btn btn-outline-secondary">
+            <a th:href="@{/mesas/{id}(id=${mesa.id})}" class="btn btn-outline btn-sm">
                 <i class="fas fa-times"></i> Cancelar
             </a>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header text-white text-center py-4"
-                 style="background-color: var(--accent); color: #000 !important;">
-                <h5 class="mb-0">Saldo Devedor</h5>
-                <h1 class="fw-bold display-4"
-                    th:text="${'R$ ' + #numbers.formatDecimal(mesa.total - mesa.totalPago, 1, 'POINT', 2, 'COMMA')}">
+        <!-- Card Principal (config-section) -->
+        <div class="config-section" style="padding: 0; overflow: hidden; border-radius: 12px;">
+
+            <!-- Cabeçalho do Saldo (Estilo Destaque) -->
+            <div style="background-color: var(--bg-hover); padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                <h5 class="text-muted" style="margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Saldo Devedor</h5>
+
+                <!-- Total devedor -->
+                <h1 class="text-accent" style="font-size: 3rem; margin: 0; font-weight: 700;"
+                    th:text="${'R$ ' + #numbers.formatDecimal(mesa.total, 1, 'POINT', 2, 'COMMA')}">
                     R$ 0,00
                 </h1>
-                <small class="d-block mt-2">
-                    Total: <span th:text="${#numbers.formatCurrency(mesa.total)}"></span> |
-                    Pago: <span th:text="${#numbers.formatCurrency(mesa.totalPago)}"></span>
-                </small>
+
+                <!-- Resumo Pequeno -->
+                <div class="text-dim" style="margin-top: 10px; font-size: 0.85rem;">
+                    Total: <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.subtotal + mesa.gorjeta + mesa.entrada, 1, 'POINT', 2, 'COMMA')}"></span> |
+                    Pago: <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.totalPago, 1, 'POINT', 2, 'COMMA')}"></span>
+                </div>
             </div>
 
-            <div class="card-body p-4">
+            <!-- Corpo do Formulário -->
+            <div style="padding: 30px;">
                 <form th:action="@{/mesas/{id}/pagamento(id=${mesa.id})}" method="post">
 
-                    <div class="mb-4">
-                        <label for="valor" class="form-label fw-bold">Valor a Pagar (R$):</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text">R$</span>
-                            <input type="number" id="valor" name="valor" class="form-control"
-                                   step="0.01" min="0.01"
-                                   th:max="${mesa.total - mesa.totalPago}"
-                                   th:value="${mesa.total - mesa.totalPago}"
-                                   required autofocus>
-                        </div>
-                        <div class="form-text mt-2">
+                    <div class="input-group">
+                        <label for="valor" style="font-size: 1rem; margin-bottom: 10px;">Valor a Pagar (R$)</label>
+                        <input type="number" id="valor" name="valor"
+                               class="input-price"
+                               style="font-size: 1.5rem; padding: 15px; text-align: center; font-weight: 700; color: var(--text-main);"
+                               step="0.01" min="0.01"
+                               th:value="${mesa.total}"
+                               required autofocus>
+
+                        <div class="text-muted" style="font-size: 0.8rem; margin-top: 8px; text-align: center;">
                             <i class="fas fa-info-circle"></i> Você pode registrar um valor parcial.
                         </div>
                     </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg text-white fw-bold">
+                    <div style="margin-top: 30px;">
+                        <button type="submit" class="btn btn-primary btn-block" style="padding: 15px; font-size: 1.1rem;">
                             <i class="fas fa-check-circle"></i> CONFIRMAR PAGAMENTO
                         </button>
                     </div>

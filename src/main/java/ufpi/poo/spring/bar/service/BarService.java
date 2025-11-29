@@ -179,7 +179,7 @@ public class BarService {
 
     public Double calcularTotalGeral(Integer idMesa) {
 
-        // 1. Busca a mesa para checar o status e o n_pessoas
+        // Busca a mesa para checar o status e o n_pessoas
         Mesa mesa = buscarMesaPorId(idMesa);
 
         // --- LÓGICA DE ITENS E GORJETAS (Já existente) ---
@@ -230,10 +230,7 @@ public class BarService {
      * Retorna lista de itens mais vendidos (Convertida para Gráfico).
      */
     public List<RelatorioGraficoDto> gerarRelatorioMaisVendidos(Instant inicio, Instant fim) {
-        // 1. Busca dados crus do banco (Interface)
         List<ItemRelatorioDto> dadosCrus = pedidoRepository.findItensMaisVendidos(inicio, fim);
-
-        // 2. Converte para DTO Simples (POJO) para o JSON funcionar no HTML
         return dadosCrus.stream()
                 .map(item -> new RelatorioGraficoDto(
                         item.getNomeItem(),      // Label (Nome)
@@ -243,13 +240,13 @@ public class BarService {
     }
 
     /**
-     * Retorna lista de maior receita (Convertida para Gráfico).
+     * Retorna lista de maior receita.
      */
     public List<RelatorioGraficoDto> gerarRelatorioMelhoresItens(Instant inicio, Instant fim) {
-        // 1. Busca dados crus do banco
+        // Busca dados crus do banco
         List<ItemRelatorioDto> dadosCrus = pedidoRepository.findItensMaiorFaturamento(inicio, fim);
 
-        // 2. Converte para DTO Simples
+        // Converte para DTO Simples
         return dadosCrus.stream()
                 .map(item -> new RelatorioGraficoDto(
                         item.getNomeItem(),  // Label (Nome)
@@ -263,22 +260,21 @@ public class BarService {
      */
     @Transactional
     public void criarNovaMesa(Integer idMesa, Integer capacidade) {
-        // 1. Validação
+        // Validação
         if (idMesa == null || idMesa <= 0 || capacidade == null || capacidade <= 0) {
             throw new IllegalArgumentException("Dados da mesa inválidos. ID e capacidade devem ser positivos.");
         }
 
-        // 2. Checa se o ID já existe
+        // Checa se o ID já existe
         if (mesaRepository.findById(idMesa).isPresent()) {
             throw new RuntimeException("Mesa " + idMesa + " já existe no sistema!");
         }
 
-        // 3. Cria o objeto e salva no banco
         Mesa novaMesa = new Mesa();
         novaMesa.setId(idMesa);
         novaMesa.setCapacidade(capacidade);
-        novaMesa.setEstado(MesaEstados.LIVRE.getLabel()); // Começa como Livre
-        novaMesa.setAtivado(true); // Ativa
+        novaMesa.setEstado(MesaEstados.LIVRE.getLabel());
+        novaMesa.setAtivado(true);
         novaMesa.setPagaEntrada(false);
         novaMesa.setNPessoas(1);
 

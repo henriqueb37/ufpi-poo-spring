@@ -16,7 +16,15 @@
             </a>
         </div>
 
-        <h2 class="section-title">Mesa <span th:text="${mesa.id}">01</span></h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="section-title" style="margin-bottom: 0;">Mesa <span th:text="${mesa.id}">01</span></h2>
+
+            <div>
+                <span th:if="${mesa.estado == 0}" class="badge bg-success">LIVRE</span>
+                <span th:if="${mesa.estado == 1}" class="badge bg-danger">OCUPADA</span>
+                <span th:if="${mesa.estado == 2}" class="badge bg-warning text-dark">EM PAGAMENTO</span>
+            </div>
+        </div>
 
         <div class="comanda-container">
 
@@ -97,7 +105,7 @@
 
                     <div class="summary-row total">
                         <span>TOTAL</span>
-                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.total - mesa.totalPago, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                        <span th:text="${'R$ ' + #numbers.formatDecimal(mesa.total, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
                     </div>
                 </div>
             </div>
@@ -137,13 +145,23 @@
                         <form th:action="@{/mesas/{id}/toggle-entrada(id=${mesa.id})}" method="post">
                             <button type="submit" class="btn btn-outline btn-block">
                                 <i class="fas fa-ticket-alt"></i>
-                                <span th:text="${mesa.pagaEntrada ? 'Isentar Entradas' : 'Cobrar Entradas'}">Entrada</span>
+                                <span th:text="${(mesa.pagaEntrada != null and mesa.pagaEntrada) ? 'Isentar Entradas' : 'Cobrar Entradas'}">Entrada</span>
                             </button>
                         </form>
 
                         <hr style="border-color: var(--border-color); margin: 15px 0;">
 
-                        <a th:href="@{/mesas/{id}/pagamento(id=${mesa.id})}" class="btn btn-success-outline btn-block">
+                        <div th:if="${mesa.estado == 0}">
+                            <form th:action="@{/mesas/{id}/abrir(id=${mesa.id})}" method="post">
+                                <button type="submit" class="btn btn-success btn-block">
+                                    <i class="fas fa-door-open"></i> Abrir Mesa
+                                </button>
+                            </form>
+                        </div>
+
+                        <a th:if="${mesa.estado == 2}"
+                                th:href="@{/mesas/{id}/pagamento(id=${mesa.id})}"
+                           class="btn btn-success-outline btn-block">
                             <i class="fas fa-dollar-sign"></i> Registrar Pagamento
                         </a>
 
@@ -153,6 +171,15 @@
                               onsubmit="return confirm('Confirma o fechamento da mesa?');">
                             <button type="submit" class="btn btn-danger btn-block">
                                 <i class="fas fa-lock"></i> Fechar Mesa
+                            </button>
+                        </form>
+
+                        <form th:if="${mesa.estado == 2}"
+                              th:action="@{/mesas/{id}/liberar(id=${mesa.id})}"
+                              method="post"
+                              onsubmit="return confirm('Tem certeza? A mesa ficará LIVRE para novos clientes.');">
+                            <button type="submit" class="btn btn-danger btn-block">
+                                <i class="fas fa-check-double"></i> Liberar Mesa
                             </button>
                         </form>
                     </div>

@@ -2,16 +2,17 @@
 .login-page {
     height: 100vh;
     width: 100%;
-    overflow: hidden; /* Evita rolagens desnecessárias */
-    /* Reaproveita a imagem do Hero, mas foca no centro */
-    background: url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
-    background-size: cover;
-    background-position: center;
+    overflow: hidden;
+    /* Fundo sólido/limpo do novo tema */
+    background-color: var(--bg-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Camada escura para esconder a imagem e dar destaque ao formulário */
+/* O overlay agora serve apenas para alinhamento, sem cor escura */
 .login-overlay {
-    background-color: rgba(18, 18, 18, 0.85); /* 85% de preto */
+    background-color: transparent;
     height: 100%;
     width: 100%;
     display: flex;
@@ -22,13 +23,13 @@
 
 /* --- O Card de Login --- */
 .login-card {
-    background-color: #1e1e1e; /* Cinza muito escuro */
+    background-color: #ffffff; /* Fundo Branco */
     width: 100%;
     max-width: 400px;
     padding: 40px;
-    border-radius: 4px;
-    border: 1px solid rgba(212, 175, 55, 0.15); /* Borda dourada sutil */
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5); /* Sombra profunda */
+    border-radius: 12px; /* Mais arredondado */
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card); /* Sombra suave definida no style.css */
 }
 
 /* Cabeçalho do Card */
@@ -41,6 +42,7 @@
     font-size: 2.5rem;
     margin-bottom: 5px;
     font-style: italic;
+    color: var(--text-main); /* Texto escuro */
 }
 
 .login-header p {
@@ -48,6 +50,7 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 0.8rem;
+    font-weight: 600;
 }
 
 /* --- Inputs --- */
@@ -57,34 +60,38 @@
 
 .input-group label {
     display: block;
-    color: var(--accent); /* Dourado para as etiquetas */
+    color: var(--text-main); /* Label escuro */
     font-size: 0.9rem;
     margin-bottom: 8px;
-    font-weight: 400;
+    font-weight: 600;
 }
 
 .input-group input {
     width: 100%;
     padding: 12px;
-    background-color: #121212; /* Fundo do input mais escuro que o card */
-    border: 1px solid #333;
-    color: #fff;
+    background-color: #ffffff; /* Input branco */
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
     font-family: var(--font-body);
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.3s;
+    transition: all 0.3s ease;
+    border-radius: 6px;
 }
 
 /* Efeito ao clicar no input */
 .input-group input:focus {
-    border-color: var(--accent); /* Borda fica dourada */
+    border-color: var(--accent); /* Laranja no foco */
+    box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1); /* Glow suave laranja */
 }
 
 /* --- Botão e Links --- */
 .btn-block {
     width: 100%;
-    padding: 15px;
+    padding: 12px;
     margin-top: 10px;
+    font-size: 1rem;
+    /* As cores do botão vêm da classe .btn-primary do style.css global */
 }
 
 .login-footer {
@@ -95,8 +102,10 @@
 .login-footer a {
     color: var(--text-muted);
     font-size: 0.85rem;
+    font-weight: 500;
+    transition: color 0.2s;
 }
 
 .login-footer a:hover {
-    color: #fff;
+    color: var(--accent);
 }

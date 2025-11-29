@@ -83,7 +83,15 @@ public class DadosService {
             entradaCalculada = valorUnitario * (mesa.getNPessoas() != null ? mesa.getNPessoas() : 1);
         }
 
+        // Trunca para 2 casas decimais
+        subtotalCalculado = Math.floor(subtotalCalculado * 100) / 100;
+        gorjetaCalculada = Math.floor(gorjetaCalculada * 100) / 100;
+        entradaCalculada = Math.floor(entradaCalculada * 100) / 100;
+        totalPagoCalculado = Math.floor(totalPagoCalculado * 100) / 100;
+
         double totalCalculado = subtotalCalculado + gorjetaCalculada + entradaCalculada - totalPagoCalculado;
+
+        totalCalculado = Math.floor(totalCalculado * 100) / 100;
 
         return new TotaisMesa(
                 subtotalCalculado,
