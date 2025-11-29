@@ -44,7 +44,7 @@ public class MesaDto implements Serializable {
         Instant hora;
     }
 
-    public static MesaDto fromMesa(Mesa mesa) {
+    public static MesaDto fromMesa(Mesa mesa, Double precoIngresso) {
         if (mesa == null) return null;
 
         // ... (Mantenha a lógica de cálculo de pagamentos e pedidos IGUAL) ...
@@ -82,7 +82,14 @@ public class MesaDto implements Serializable {
             }
         }
 
-        double entradaCalculada = 0.0; // Sem acesso ao repo, mantém 0
+        // Calcula a entrada baseada no preço recebido e no número de pessoas
+        double entradaCalculada = 0.0;
+        if (mesa.getPagaEntrada() != null && mesa.getPagaEntrada()) {
+            // Se o preço for nulo (não achou item), usa 0.0
+            double valorUnitario = (precoIngresso != null) ? precoIngresso : 0.0;
+            entradaCalculada = valorUnitario * (mesa.getNPessoas() != null ? mesa.getNPessoas() : 1);
+        }
+
         double totalCalculado = subtotalCalculado + gorjetaCalculada + entradaCalculada;
 
         return new MesaDto(
@@ -90,13 +97,13 @@ public class MesaDto implements Serializable {
                 mesa.getEstado(),
                 mesa.getPagaEntrada(),
                 mesa.getNPessoas(),
-                mesa.getCapacidade(), // <--- ADICIONE AQUI! (Pega da Entidade e joga no DTO)
+                mesa.getCapacidade(),
                 mesa.getHoraAberta(),
                 pagamentosDto,
                 pedidosDto,
                 subtotalCalculado,
                 gorjetaCalculada,
-                entradaCalculada,
+                entradaCalculada, // Agora vai com o valor certo!
                 totalPagoCalculado,
                 totalCalculado
         );

@@ -12,16 +12,24 @@ import ufpi.poo.spring.bar.model.Cardapio;
 import ufpi.poo.spring.bar.model.Mesa;
 import ufpi.poo.spring.bar.model.TiposCardapio;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DadosService {
+
     @Autowired
-    CardapioRepository cardapioDao;
+    private CardapioRepository cardapioDao;
+
     @Autowired
     private MesaRepository mesaRepository;
+
     @Autowired
     private TiposCardapioRepository tiposCardapioRepository;
+
+    @Autowired
+    private ufpi.poo.spring.bar.dao.ConfiguracaoRepository configuracaoRepository;
 
     public List<CardapioDto> getCardapio() {
         Iterable<Cardapio> cardapio = cardapioDao.findAll();
@@ -33,58 +41,17 @@ public class DadosService {
         return cardapioDto;
     }
 
+    /**
+     * Método principal para converter Mesa -> MesaDto.
+     * Agora busca o preço do ingresso no banco para passar ao DTO.
+     */
     public MesaDto getMesa(Mesa mesa) {
-        double subtotal = 0;
-        double gorjeta = 0;
-        double entrada = 0;
-        double jaPago = 0;
-        double total = 0;
-        Set<MesaDto.PagamentoDto> pagamentos = new HashSet<>();
-        for (var p : mesa.getPagamentos()) {
-            if (mesa.getHoraAberta() != null && p.getHora().isAfter(mesa.getHoraAberta())) {
-                pagamentos.add(new MesaDto.PagamentoDto(p.getId(), p.getValor(), p.getHora()));
-                jaPago += p.getValor();
-            }
-        }
-        Set<MesaDto.PedidoDto> pedidos = new HashSet<>();
-        for (var p : mesa.getPedidos()) {
-            if (p.getCancelamento() == null && mesa.getHoraAberta() != null && p.getHora().isAfter(mesa.getHoraAberta())) {
-                MesaDto.PedidoDto pedidoDto = new MesaDto.PedidoDto(
-                        p.getId(),
-                        p.getItem().getId(),
-                        p.getItem().getNome(),
-                        p.getValorFechado() == null
-                                ? p.getItem().getValor()
-                                : p.getValorFechado(),
-                        p.getItem().getTipo().getId(),
-                        p.getItem().getTipo().getNome(),
-                        p.getItem().getTipo().getPercGorjeta(),
-                        p.getQuant(),
-                        p.getHora()
-                );
-                pedidos.add(pedidoDto);
-                subtotal += pedidoDto.getItemValor() * pedidoDto.getQuant();
-                gorjeta += pedidoDto.getItemValor() * pedidoDto.getQuant() * pedidoDto.getItemTipoPercGorjeta();
-            }
-        }
-        // FIXME: Pegar o valor da entrada de algum lugar do banco de dados, em vez de usar um valor fixo.
-        entrada = mesa.getPagaEntrada() ? mesa.getNPessoas() * 50 : 0;
-        total = subtotal + gorjeta + entrada - jaPago;
-        return new MesaDto(
-                mesa.getId(),
-                mesa.getEstado(),
-                mesa.getPagaEntrada(),
-                mesa.getNPessoas(),
-                mesa.getCapacidade(),
-                mesa.getHoraAberta(),
-                pagamentos,
-                pedidos,
-                subtotal,
-                gorjeta,
-                entrada,
-                jaPago,
-                total
-        );
+        // Busca o preço da Configuração, não do Item
+        Double precoIngresso = configuracaoRepository.findById(1)
+                .map(c -> c.getValorCouvert())
+                .orElse(0.0);
+
+        return MesaDto.fromMesa(mesa, precoIngresso);
     }
 
     public Optional<MesaDto> getMesa(Integer id) {
@@ -92,8 +59,8 @@ public class DadosService {
         if (mesaOpt.isEmpty()) {
             return Optional.empty();
         }
-        Mesa mesa = mesaOpt.get();
-        return Optional.of(getMesa(mesa));
+        // Reusa o método acima para garantir consistência
+        return Optional.of(getMesa(mesaOpt.get()));
     }
 
     public List<CardapioDto> getCardapioAll() {

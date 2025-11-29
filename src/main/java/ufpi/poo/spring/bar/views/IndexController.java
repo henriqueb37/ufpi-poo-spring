@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import ufpi.poo.spring.bar.dao.CardapioRepository;
+import ufpi.poo.spring.bar.dao.ConfiguracaoRepository; // Import adicionado
 import ufpi.poo.spring.bar.dao.MesaRepository;
 import ufpi.poo.spring.bar.dao.PagamentoRepository;
 import ufpi.poo.spring.bar.dto.CardapioDto;
@@ -24,16 +25,25 @@ import java.util.stream.Collectors;
 
 @Controller
 public class IndexController {
+
     @Autowired
-    CardapioRepository cardapioDao;
+    private CardapioRepository cardapioDao;
+
     @Autowired
-    MesaRepository mesaDao;
+    private MesaRepository mesaDao;
+
     @Autowired
     private DadosService dadosService;
+
     @Autowired
     private BarService barService;
+
     @Autowired
     private PagamentoRepository pagamentoRepository;
+
+    // Injeção nova para buscar o valor do couvert
+    @Autowired
+    private ConfiguracaoRepository configuracaoRepository;
 
     @GetMapping("/")
     public String paginaInicial() {
@@ -61,19 +71,14 @@ public class IndexController {
         return "login";
     }
 
-//    @GetMapping("/admin/registrar-funcionario")
-//    public String cadastrarFuncionario() {
-//        return "cadastro";
-//    }
-
     @GetMapping("/mesas")
     public String getMesas(Model model) {
         Iterable<Mesa> mesas = mesaDao.findAll();
         List<MesaDto> mesaDto = new ArrayList<>();
         for (var m : mesas) {
             if (m.getAtivado())
-                // Usa o serviço do seu amigo para converter
-                mesaDto.add(MesaDto.fromMesa(m));
+                // Usa o serviço para converter (inclui lógica de preço de entrada)
+                mesaDto.add(dadosService.getMesa(m));
         }
         model.addAttribute("mesas", mesaDto);
         return "mesas";
@@ -83,8 +88,7 @@ public class IndexController {
     public String getDetalhesMesa(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
         if (mesa.isPresent()) {
-            // Usa o DTO atualizado
-            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
+            model.addAttribute("mesa", dadosService.getMesa(mesa.get()));
             return "mesa-detalhe";
         }
         return "error/404";
@@ -93,9 +97,8 @@ public class IndexController {
     @GetMapping("/mesas/{id}/adicionar")
     public String adicionarItem(Model model, @PathVariable Integer id) {
         Optional<Mesa> mesa = mesaDao.findById(id);
-        // Verifica se existe, está ativa e OCUPADA (usando o Enum correto)
         if (mesa.isPresent() && mesa.get().getAtivado() && mesa.get().getEstado() == MesaEstados.OCUPADA.getLabel()) {
-            model.addAttribute("mesa", MesaDto.fromMesa(mesa.get()));
+            model.addAttribute("mesa", dadosService.getMesa(mesa.get()));
             model.addAttribute("cardapio", dadosService.getCardapio());
             return "adicionar-pedido";
         }
@@ -135,12 +138,15 @@ public class IndexController {
             map.put(tipo, itensDoTipo);
         }
 
+        // --- NOVO: Busca o valor do Couvert para preencher o input no HTML ---
+        Double valorEntrada = configuracaoRepository.findById(1)
+                .map(c -> c.getValorCouvert())
+                .orElse(0.0);
+        model.addAttribute("valorEntrada", valorEntrada);
+        // ---------------------------------------------------------------------
+
         model.addAttribute("cardapioMap", map);
 
         return "admin-cardapio";
     }
-
-    // --- REMOVIDO: @GetMapping("/admin/mesas") ---
-    // Este método foi removido porque agora quem cuida dessa rota
-    // é o MesaAdminController que criamos.
 }

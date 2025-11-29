@@ -23,11 +23,11 @@ public class Mesa {
 
     @ColumnDefault("0")
     @Column(name = "paga_entrada")
-    private Boolean pagaEntrada;
+    private Boolean pagaEntrada = false;
 
     @ColumnDefault("1")
     @Column(name = "n_pessoas")
-    private Integer nPessoas;
+    private Integer nPessoas = 1;
 
     @Column(name = "hora_aberta")
     private Instant horaAberta;

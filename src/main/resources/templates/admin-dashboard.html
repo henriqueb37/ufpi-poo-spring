@@ -10,8 +10,8 @@
     <div class="container">
         <h2 class="section-title">Painel Administrativo</h2>
 
-        <!-- 1. GRID DE AÇÕES RÁPIDAS (CRUDs) -->
         <div class="admin-grid">
+
             <a href="/admin/mesas" class="admin-card">
                 <i class="fas fa-couch admin-icon"></i>
                 <h3>Gerenciar Mesas</h3>
@@ -30,6 +30,12 @@
                 <p>Taxas de serviço, couvert e sistema.</p>
             </a>
 
+            <a href="/admin/usuarios" class="admin-card">
+                <i class="fas fa-users-cog admin-icon"></i>
+                <h3>Equipe</h3>
+                <p>Cadastrar garçons e administradores.</p>
+            </a>
+
             <a href="/admin/relatorios" class="admin-card">
                 <i class="fas fa-chart-line admin-icon"></i>
                 <h3>Relatórios Completos</h3>
@@ -37,8 +43,7 @@
             </a>
         </div>
 
-        <!-- 2. RESUMO GERENCIAL -->
-        <h3 class="config-header">Resumo do Dia</h3>
+        <h3 class="config-header" style="margin-top: 50px;">Resumo do Dia</h3>
 
         <div class="admin-grid">
             <div class="admin-card stat-card">
@@ -59,10 +64,8 @@
             </div>
         </div>
 
-        <!-- 3. TABELAS DE DESTAQUE -->
         <div class="form-grid">
 
-            <!-- Mais Vendidos -->
             <div class="config-section" style="margin: 0; padding: 20px;">
                 <h4 style="color: var(--accent); margin-bottom: 15px;">Itens Mais Vendidos (Qtd)</h4>
                 <table class="report-table">
@@ -81,7 +84,6 @@
                 </table>
             </div>
 
-            <!-- Maior Faturamento -->
             <div class="config-section" style="margin: 0; padding: 20px;">
                 <h4 style="color: var(--accent); margin-bottom: 15px;">Maior Faturamento (R$)</h4>
                 <table class="report-table">

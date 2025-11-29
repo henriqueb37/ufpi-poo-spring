@@ -51,6 +51,8 @@ public class BarService {
         mesa.setEstado(1); // Marca como Ocupada
         mesa.setHoraAberta(Instant.now());
         mesa.setAtivado(true);
+        mesa.setPagaEntrada(false);
+        mesa.setNPessoas(1);
         // Limpa pagamentos/pedidos antigos se necessário, ou assume que o banco está limpo
 
         mesaRepository.save(mesa);
@@ -179,6 +181,7 @@ public class BarService {
 
 
     // --- MÉTODOS DE CÁLCULO (Auxiliares) ---
+    @Autowired private ConfiguracaoRepository configuracaoRepository;
 
     public Double calcularTotalGeral(Integer idMesa) {
 
@@ -209,15 +212,14 @@ public class BarService {
 
         // --- NOVO CÁLCULO: VALOR DA ENTRADA (COUVERT) ---
 
-        if (mesa.getPagaEntrada()) { // Se o Garçom ativou o couvert
+        if (mesa.getPagaEntrada()) {
+            // Busca o valor na tabela de configurações (ID fixo 1)
+            // Se não existir configuração, assume 0.0
+            Double valorCouvert = configuracaoRepository.findById(1)
+                    .map(config -> config.getValorCouvert())
+                    .orElse(0.0);
 
-            // 2. Busca o preço atual do ingresso (usando o tipo ID = 1)
-            Cardapio ingressoItem = cardapioRepository.findFirstByTipoId(1);
-
-            if (ingressoItem != null) {
-                // 3. Adiciona o valor: Preço do Ingresso * Número de Pessoas
-                totalItens += ingressoItem.getValor() * mesa.getNPessoas();
-            }
+            totalItens += valorCouvert * mesa.getNPessoas();
         }
 
         return totalItens + totalGorjeta;
@@ -287,7 +289,22 @@ public class BarService {
         novaMesa.setCapacidade(capacidade);
         novaMesa.setEstado(MesaEstados.LIVRE.getLabel()); // Começa como Livre
         novaMesa.setAtivado(true); // Ativa
+        novaMesa.setPagaEntrada(false);
+        novaMesa.setNPessoas(1);
 
         mesaRepository.save(novaMesa);
+    }
+
+    // ... dentro de BarService.java ...
+
+    @Transactional
+    public void atualizarNumeroPessoas(Integer idMesa, Integer nPessoas) {
+        if (nPessoas == null || nPessoas <= 0) {
+            throw new IllegalArgumentException("Número de pessoas deve ser maior que zero.");
+        }
+
+        Mesa mesa = buscarMesaPorId(idMesa);
+        mesa.setNPessoas(nPessoas);
+        mesaRepository.save(mesa);
     }
 }

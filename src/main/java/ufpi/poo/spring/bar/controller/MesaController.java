@@ -6,8 +6,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ufpi.poo.spring.bar.dao.CardapioRepository; // Adicione este import
+import ufpi.poo.spring.bar.dao.ConfiguracaoRepository;
 import ufpi.poo.spring.bar.dao.MesaRepository;
 import ufpi.poo.spring.bar.dto.MesaDto;
+import ufpi.poo.spring.bar.model.Cardapio; // Adicione este import
 import ufpi.poo.spring.bar.model.Mesa;
 import ufpi.poo.spring.bar.service.BarService;
 
@@ -17,9 +20,10 @@ public class MesaController {
 
     @Autowired private BarService barService;
     @Autowired private MesaRepository mesaRepository;
+    @Autowired private ConfiguracaoRepository configuracaoRepository;
 
-    // OBS: Os métodos GET (listar e detalhes) foram removidos daqui
-    // pois já estão no IndexController do seu amigo.
+    // CORREÇÃO DO TYPO (era cardapioRepositor)
+    @Autowired private CardapioRepository cardapioRepository;
 
     // --- AÇÕES OPERACIONAIS (POST) ---
 
@@ -73,7 +77,7 @@ public class MesaController {
             barService.liberarMesa(id);
             ra.addFlashAttribute("sucesso", "Mesa liberada!");
         } catch (Exception e) {
-            ra.addFlashAttribute("erro", "Erro ao liberar: " + e.getMessage());
+            ra.addFlashAttribute("erro", e.getMessage());
         }
         return "redirect:/mesas/" + id;
     }
@@ -94,15 +98,20 @@ public class MesaController {
     }
 
     // --- PAGAMENTO (GET e POST) ---
-    // Este o seu amigo NÃO fez no IndexController, então mantemos aqui.
 
     @GetMapping("/{id}/pagamento")
     @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
     public String formPagamento(@PathVariable Integer id, Model model) {
         Mesa mesa = barService.buscarMesaPorId(id);
-        // Usamos o DTO atualizado com os cálculos que acabamos de corrigir!
-        model.addAttribute("mesa", MesaDto.fromMesa(mesa));
-        return "pagamento-form"; // Precisa criar/verificar este HTML
+
+        // 1. Busca o preço do ingresso (Tipo ID = 1)
+        Cardapio ingresso = cardapioRepository.findFirstByTipoId(1);
+        Double precoIngresso = (ingresso != null) ? ingresso.getValor() : 0.0;
+
+        // 2. Passa a mesa E o preço do ingresso para o DTO
+        model.addAttribute("mesa", MesaDto.fromMesa(mesa, precoIngresso));
+
+        return "pagamento-form";
     }
 
     @PostMapping("/{id}/pagamento")
@@ -115,6 +124,21 @@ public class MesaController {
             ra.addFlashAttribute("sucesso", "Pagamento de R$ " + valor + " registrado!");
         } catch (Exception e) {
             ra.addFlashAttribute("erro", e.getMessage());
+        }
+        return "redirect:/mesas/" + id;
+    }
+
+    // NOVO: Atualizar Número de Pessoas
+    @PostMapping("/{id}/pessoas")
+    @PreAuthorize("hasAnyRole('GARCOM', 'ADMIN')")
+    public String atualizarPessoas(@PathVariable Integer id,
+                                   @RequestParam Integer nPessoas,
+                                   RedirectAttributes ra) {
+        try {
+            barService.atualizarNumeroPessoas(id, nPessoas);
+            ra.addFlashAttribute("sucesso", "Número de pessoas atualizado.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("erro", "Erro ao atualizar: " + e.getMessage());
         }
         return "redirect:/mesas/" + id;
     }

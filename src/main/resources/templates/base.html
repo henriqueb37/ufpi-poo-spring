@@ -22,12 +22,13 @@
             <li><a href="/cardapio">Cardápio</a></li>
             <li><a href="#sobre">Sobre</a></li>
 
-            <li sec:authorize="isAuthenticated()">
+            <li sec:authorize="hasRole('ADMIN')">
                 <a href="/admin/dashboard" style="color: #e1b12c; font-weight: bold; border: 1px solid #e1b12c; padding: 5px 10px; border-radius: 5px;">
                     <i class="fas fa-user-shield"></i> Painel
                 </a>
             </li>
-            <li><a href="#reserva" class="btn btn-primary">Acessar Mesa</a></li>
+
+            <li><a href="/mesas" class="btn btn-primary">Acessar Mesa</a></li>
         </ul>
     </div>
 </nav>
@@ -43,13 +44,11 @@
         <p>2025.2 UFPI - Teresina</p>
 
         <div class="admin-access">
-            <!-- Link visível apenas se NÃO estiver logado -->
             <a href="/login-funcionario"
                class="employee-link"
                accesskey="s"
                sec:authorize="!isAuthenticated()">Acesso ao Sistema</a>
 
-            <!-- Link visível apenas se ESTIVER logado -->
             <a href="/logout"
                class="employee-link"
                sec:authorize="isAuthenticated()">Sair do Sistema</a>

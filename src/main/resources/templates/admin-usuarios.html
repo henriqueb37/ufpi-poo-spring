@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout (~{::title}, ~{::section})}">
+<head>
+    <title>Gerenciar Equipe</title>
+</head>
+<body>
+
+<section class="section">
+    <div class="container">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title">Gerenciar Equipe</h2>
+            <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+
+        <div th:if="${sucesso}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i> <span th:text="${sucesso}"></span>
+        </div>
+        <div th:if="${erro}" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${erro}"></span>
+        </div>
+
+        <div class="card shadow-sm mb-5" style="border: 1px solid #333;">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus"></i> Cadastrar Funcionário</h4>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/usuarios/salvar}" th:object="${novoUsuario}" method="post" class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nome Completo</label>
+                        <input type="text" class="form-control" th:field="*{nomeCompleto}" required placeholder="Ex: João da Silva">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email (Login)</label>
+                        <input type="email" class="form-control" th:field="*{email}" required placeholder="joao@bar.com">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Senha</label>
+                        <input type="password" class="form-control" th:field="*{senha}" required placeholder="******">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Cargo</label>
+                        <select class="form-select" th:field="*{cargo}">
+                            <option th:each="cargo : ${cargos}"
+                                    th:value="${cargo}"
+                                    th:text="${cargo}">GARCOM</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--accent); border: none; color: black; font-weight: bold;">
+                            CADASTRAR
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Funcionários Ativos</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Cargo</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${usuarios}">
+                        <td th:text="${user.nomeCompleto}">João</td>
+                        <td th:text="${user.email}">joao@bar.com</td>
+                        <td>
+                            <span th:if="${user.cargo.name() == 'ADMIN'}" class="badge bg-danger">ADMIN</span>
+                            <span th:if="${user.cargo.name() == 'GARCOM'}" class="badge bg-info text-dark">GARÇOM</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/usuarios/excluir/{id}(id=${user.id})}" method="post"
+                                  onsubmit="return confirm('Tem certeza que deseja remover este funcionário?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

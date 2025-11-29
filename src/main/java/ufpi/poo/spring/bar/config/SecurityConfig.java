@@ -29,8 +29,8 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        // MUDANÇA AQUI: Mande para o Dashboard do Admin
-                        .defaultSuccessUrl("/admin/dashboard", true)
+                        // MUDANÇA AQUI: Mude de "/admin/dashboard" para "/mesas"
+                        .defaultSuccessUrl("/mesas", true)
                         .permitAll()
                 )
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login"));
